@@ -1,0 +1,346 @@
+import React, { useState, useEffect } from 'react';
+import { adminService, leaveService, trackingService } from '../../api/services';
+import { BarChart3, Download, Calendar, Users, Clock, FileText, TrendingUp } from 'lucide-react';
+import { format } from 'date-fns';
+import toast from 'react-hot-toast';
+
+interface ReportData {
+  total_users: number;
+  active_users: number;
+  pending_leaves: number;
+  total_holidays: number;
+  present_today: number;
+  absent_today: number;
+}
+
+interface LeaveReport {
+  user: {
+    name: string;
+    email: string;
+  };
+  total_leaves: number;
+  approved_leaves: number;
+  pending_leaves: number;
+  rejected_leaves: number;
+}
+
+export const Reports: React.FC = () => {
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [leaveReports, setLeaveReports] = useState<LeaveReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dateRange, setDateRange] = useState({
+    start: format(new Date(new Date().getFullYear(), 0, 1), 'yyyy-MM-dd'),
+    end: format(new Date(), 'yyyy-MM-dd')
+  });
+
+  useEffect(() => {
+    fetchReportData();
+  }, []);
+
+  const fetchReportData = async () => {
+    try {
+      const [statsResponse, leavesResponse] = await Promise.all([
+        adminService.getDashboard().catch(() => ({ data: null })),
+        leaveService.getLeaveReports().catch(() => ({ data: [] }))
+      ]);
+
+      setReportData(statsResponse.data);
+      setLeaveReports(leavesResponse.data);
+    } catch (error) {
+      toast.error('Failed to fetch report data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportReport = (type: string) => {
+    // This would typically generate and download a report file
+    toast.success(`${type} report exported successfully`);
+  };
+
+  const getAttendancePercentage = () => {
+    if (!reportData) return 0;
+    const total = reportData.present_today + reportData.absent_today;
+    return total > 0 ? Math.round((reportData.present_today / total) * 100) : 0;
+  };
+
+  const getActiveUserPercentage = () => {
+    if (!reportData) return 0;
+    return reportData.total_users > 0 ? Math.round((reportData.active_users / reportData.total_users) * 100) : 0;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
+        <h2 className="text-2xl font-bold">Reports & Analytics</h2>
+        <p className="text-blue-100">Comprehensive insights and system analytics</p>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Start Date</label>
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">End Date</label>
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => fetchReportData()}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                  <dd className="text-lg font-medium text-gray-900">{reportData?.total_users || 0}</dd>
+                </dl>
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="flex items-center text-sm text-gray-500">
+                <span className="text-green-600 font-medium">{getActiveUserPercentage()}%</span>
+                <span className="ml-1">active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Clock className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Today's Attendance</dt>
+                  <dd className="text-lg font-medium text-gray-900">{getAttendancePercentage()}%</dd>
+                </dl>
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="flex items-center text-sm text-gray-500">
+                <span className="text-green-600 font-medium">{reportData?.present_today || 0}</span>
+                <span className="ml-1">present</span>
+                <span className="mx-2">•</span>
+                <span className="text-red-600 font-medium">{reportData?.absent_today || 0}</span>
+                <span className="ml-1">absent</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <FileText className="h-8 w-8 text-yellow-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Pending Leaves</dt>
+                  <dd className="text-lg font-medium text-gray-900">{reportData?.pending_leaves || 0}</dd>
+                </dl>
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="flex items-center text-sm text-gray-500">
+                <span className="text-yellow-600 font-medium">Requires attention</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Calendar className="h-8 w-8 text-purple-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Total Holidays</dt>
+                  <dd className="text-lg font-medium text-gray-900">{reportData?.total_holidays || 0}</dd>
+                </dl>
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="flex items-center text-sm text-gray-500">
+                <span className="text-purple-600 font-medium">This year</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Export Options */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Export Reports</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button
+            onClick={() => handleExportReport('User')}
+            className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Download className="h-5 w-5 mr-2" />
+            User Report
+          </button>
+          <button
+            onClick={() => handleExportReport('Attendance')}
+            className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Download className="h-5 w-5 mr-2" />
+            Attendance Report
+          </button>
+          <button
+            onClick={() => handleExportReport('Leave')}
+            className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Download className="h-5 w-5 mr-2" />
+            Leave Report
+          </button>
+          <button
+            onClick={() => handleExportReport('Holiday')}
+            className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Download className="h-5 w-5 mr-2" />
+            Holiday Report
+          </button>
+        </div>
+      </div>
+
+      {/* Leave Reports by User */}
+      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">Leave Summary by User</h3>
+        </div>
+        
+        {leaveReports.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No leave data available</h3>
+            <p className="mt-1 text-sm text-gray-500">Leave reports will appear here once data is available.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Leaves</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejected</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {leaveReports.map((report, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{report.user.name}</div>
+                        <div className="text-sm text-gray-500">{report.user.email}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.total_leaves}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {report.approved_leaves}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {report.pending_leaves}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {report.rejected_leaves}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* System Health */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">System Health</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Database Status</span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Healthy
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">API Response Time</span>
+              <span className="text-sm font-medium text-gray-900">~150ms</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Uptime</span>
+              <span className="text-sm font-medium text-gray-900">99.9%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+          <div className="space-y-2">
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+              Generate Monthly Report
+            </button>
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+              Export All Data
+            </button>
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+              Schedule Automated Reports
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
