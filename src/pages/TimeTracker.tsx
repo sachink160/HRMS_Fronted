@@ -56,7 +56,7 @@ export const TimeTracker: React.FC = () => {
   };
 
   const handleCheckIn = async () => {
-    const result = await handleAsyncError(
+    await handleAsyncError(
       async () => {
         setIsCheckingIn(true);
         await trackingService.checkIn();
@@ -69,7 +69,7 @@ export const TimeTracker: React.FC = () => {
   };
 
   const handleCheckOut = async () => {
-    const result = await handleAsyncError(
+    await handleAsyncError(
       async () => {
         setIsCheckingOut(true);
         await trackingService.checkOut();

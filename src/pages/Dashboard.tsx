@@ -25,7 +25,7 @@ export const Dashboard: React.FC = () => {
         const [todayStatus, myLeaves, holidays] = await Promise.all([
           trackingService.getTodayStatus().catch(() => ({ data: null })),
           leaveService.getMyLeaves().catch(() => ({ data: [] })),
-          holidayService.getHolidays().catch(() => ({ data: [] })),
+          holidayService.getUpcomingHolidays().catch(() => ({ data: [] })),
         ]);
 
         setStats({
@@ -178,8 +178,8 @@ export const Dashboard: React.FC = () => {
                 {stats.upcomingHolidays.map((holiday) => (
                   <div key={holiday.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-900">{holiday.name}</p>
-                      <p className="text-sm text-gray-600">{holiday.type}</p>
+                      <p className="font-medium text-gray-900">{holiday.title}</p>
+                      <p className="text-sm text-gray-600">{holiday.description || 'Official holiday'}</p>
                     </div>
                     <span className="text-sm font-medium text-blue-600">
                       {format(new Date(holiday.date), 'MMM dd')}

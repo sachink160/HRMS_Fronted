@@ -6,11 +6,9 @@ import toast from 'react-hot-toast';
 
 interface ReportData {
   total_users: number;
-  active_users: number;
+  active_users_today: number;
   pending_leaves: number;
-  total_holidays: number;
-  present_today: number;
-  absent_today: number;
+  upcoming_holidays: number;
 }
 
 interface LeaveReport {
@@ -44,10 +42,14 @@ export const Reports: React.FC = () => {
         leaveService.getLeaveReports().catch(() => ({ data: [] }))
       ]);
 
-      setReportData(statsResponse.data);
-      setLeaveReports(leavesResponse.data);
+      // Backend returns keys: total_users, active_users_today, pending_leaves, upcoming_holidays
+      setReportData(statsResponse.data ?? null);
+      // Ensure leaveReports is always an array
+      setLeaveReports(Array.isArray(leavesResponse.data) ? leavesResponse.data : []);
     } catch (error) {
       toast.error('Failed to fetch report data');
+      // Ensure leaveReports is always an array even on error
+      setLeaveReports([]);
     } finally {
       setIsLoading(false);
     }
@@ -58,15 +60,13 @@ export const Reports: React.FC = () => {
     toast.success(`${type} report exported successfully`);
   };
 
-  const getAttendancePercentage = () => {
-    if (!reportData) return 0;
-    const total = reportData.present_today + reportData.absent_today;
-    return total > 0 ? Math.round((reportData.present_today / total) * 100) : 0;
-  };
+  const getAttendanceToday = () => reportData?.active_users_today ?? 0;
 
   const getActiveUserPercentage = () => {
     if (!reportData) return 0;
-    return reportData.total_users > 0 ? Math.round((reportData.active_users / reportData.total_users) * 100) : 0;
+    return reportData.total_users > 0 
+      ? Math.round(((reportData.active_users_today || 0) / reportData.total_users) * 100) 
+      : 0;
   };
 
   if (isLoading) {
@@ -150,18 +150,15 @@ export const Reports: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Today's Attendance</dt>
-                  <dd className="text-lg font-medium text-gray-900">{getAttendancePercentage()}%</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Present Today</dt>
+                  <dd className="text-lg font-medium text-gray-900">{getAttendanceToday()}</dd>
                 </dl>
               </div>
             </div>
             <div className="mt-2">
               <div className="flex items-center text-sm text-gray-500">
-                <span className="text-green-600 font-medium">{reportData?.present_today || 0}</span>
-                <span className="ml-1">present</span>
-                <span className="mx-2">•</span>
-                <span className="text-red-600 font-medium">{reportData?.absent_today || 0}</span>
-                <span className="ml-1">absent</span>
+                <span className="text-green-600 font-medium">{getActiveUserPercentage()}%</span>
+                <span className="ml-1">of users checked in</span>
               </div>
             </div>
           </div>
@@ -196,8 +193,8 @@ export const Reports: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Holidays</dt>
-                  <dd className="text-lg font-medium text-gray-900">{reportData?.total_holidays || 0}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Upcoming Holidays</dt>
+                  <dd className="text-lg font-medium text-gray-900">{reportData?.upcoming_holidays || 0}</dd>
                 </dl>
               </div>
             </div>
@@ -251,7 +248,7 @@ export const Reports: React.FC = () => {
           <h3 className="text-lg leading-6 font-medium text-gray-900">Leave Summary by User</h3>
         </div>
         
-        {leaveReports.length === 0 ? (
+        {(!leaveReports || leaveReports.length === 0) ? (
           <div className="text-center py-12">
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No leave data available</h3>
@@ -270,7 +267,7 @@ export const Reports: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {leaveReports.map((report, index) => (
+                {(leaveReports || []).map((report, index) => (
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>

@@ -6,9 +6,10 @@ import toast from 'react-hot-toast';
 
 interface Holiday {
   id: number;
-  name: string;
+  title: string;
   date: string;
-  type: string;
+  description?: string;
+  is_active?: boolean;
 }
 
 export const Holidays: React.FC = () => {
@@ -34,17 +35,12 @@ export const Holidays: React.FC = () => {
     return isAfter(new Date(date), startOfDay(new Date()));
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'national':
-        return 'bg-red-100 text-red-800';
-      case 'religious':
-        return 'bg-purple-100 text-purple-800';
-      case 'regional':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getActiveBadge = (isActive?: boolean) => {
+    return (
+      <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+        {isActive ? 'Active' : 'Inactive'}
+      </span>
+    );
   };
 
   if (isLoading) {
@@ -55,8 +51,9 @@ export const Holidays: React.FC = () => {
     );
   }
 
-  const upcomingHolidays = holidays.filter(holiday => isUpcoming(holiday.date));
-  const pastHolidays = holidays.filter(holiday => !isUpcoming(holiday.date));
+  const visibleHolidays = holidays.filter(h => h.is_active !== false);
+  const upcomingHolidays = visibleHolidays.filter(holiday => isUpcoming(holiday.date));
+  const pastHolidays = visibleHolidays.filter(holiday => !isUpcoming(holiday.date));
 
   return (
     <div className="space-y-6">
@@ -92,16 +89,17 @@ export const Holidays: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-lg font-medium text-gray-900">{holiday.name}</h4>
+                      <h4 className="text-lg font-medium text-gray-900">{holiday.title}</h4>
                       <p className="text-sm text-gray-600">
                         {format(new Date(holiday.date), 'EEEE, MMMM dd, yyyy')}
                       </p>
+                      {holiday.description && (
+                        <p className="text-sm text-gray-500">{holiday.description}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(holiday.type)}`}>
-                      {holiday.type}
-                    </span>
+                    {getActiveBadge(holiday.is_active)}
                   </div>
                 </div>
               </div>
@@ -127,16 +125,17 @@ export const Holidays: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-lg font-medium text-gray-700">{holiday.name}</h4>
+                      <h4 className="text-lg font-medium text-gray-700">{holiday.title}</h4>
                       <p className="text-sm text-gray-500">
                         {format(new Date(holiday.date), 'EEEE, MMMM dd, yyyy')}
                       </p>
+                      {holiday.description && (
+                        <p className="text-sm text-gray-400">{holiday.description}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(holiday.type)}`}>
-                      {holiday.type}
-                    </span>
+                    {getActiveBadge(holiday.is_active)}
                   </div>
                 </div>
               </div>

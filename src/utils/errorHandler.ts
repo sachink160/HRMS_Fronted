@@ -35,7 +35,23 @@ export const handleApiError = (error: any): ApiError => {
 
   // HTTP error
   const { status, data } = error.response;
-  const message = data?.detail || data?.message || 'An unexpected error occurred';
+  let message = 'An unexpected error occurred';
+  
+  if (data?.detail) {
+    if (Array.isArray(data.detail)) {
+      // Validation errors - extract the first error message
+      const firstError = data.detail[0];
+      if (firstError && typeof firstError === 'object' && firstError.msg) {
+        message = firstError.msg;
+      } else {
+        message = 'Validation error occurred';
+      }
+    } else if (typeof data.detail === 'string') {
+      message = data.detail;
+    }
+  } else if (data?.message) {
+    message = data.message;
+  }
 
   return {
     message,
@@ -92,6 +108,19 @@ export const validatePassword = (password: string): { isValid: boolean; message?
 export const formatError = (error: any): string => {
   if (typeof error === 'string') return error;
   if (error?.message) return error.message;
-  if (error?.response?.data?.detail) return error.response.data.detail;
+  if (error?.response?.data?.detail) {
+    const detail = error.response.data.detail;
+    if (Array.isArray(detail)) {
+      // Validation errors - extract the first error message
+      const firstError = detail[0];
+      if (firstError && typeof firstError === 'object' && firstError.msg) {
+        return firstError.msg;
+      } else {
+        return 'Validation error occurred';
+      }
+    } else if (typeof detail === 'string') {
+      return detail;
+    }
+  }
   return 'An unexpected error occurred';
 };

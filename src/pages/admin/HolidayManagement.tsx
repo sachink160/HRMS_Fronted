@@ -9,6 +9,7 @@ interface Holiday {
   title: string;
   date: string;
   description?: string;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -21,7 +22,8 @@ export const HolidayManagement: React.FC = () => {
   const [newHoliday, setNewHoliday] = useState({
     title: '',
     date: '',
-    description: ''
+    description: '',
+    is_active: true
   });
 
   useEffect(() => {
@@ -43,12 +45,13 @@ export const HolidayManagement: React.FC = () => {
     e.preventDefault();
     try {
       await holidayService.addHoliday({
-        name: newHoliday.title,
+        title: newHoliday.title,
         date: newHoliday.date,
-        type: 'Public Holiday'
+        description: newHoliday.description || undefined,
+        is_active: newHoliday.is_active,
       });
       toast.success('Holiday added successfully');
-      setNewHoliday({ title: '', date: '', description: '' });
+      setNewHoliday({ title: '', date: '', description: '', is_active: true });
       setShowAddForm(false);
       fetchHolidays();
     } catch (error) {
@@ -72,11 +75,34 @@ export const HolidayManagement: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      await holidayService.bulkUploadHolidays(formData);
+      const text = await file.text();
+      // Minimal CSV: title,date,description
+      const lines = text.trim().split(/\r?\n/);
+      const [headerLine, ...rows] = lines;
+      const headers = headerLine.split(',').map(h => h.trim().toLowerCase());
+      const titleIdx = headers.indexOf('title');
+      const dateIdx = headers.indexOf('date');
+      const descIdx = headers.indexOf('description');
+      if (titleIdx === -1 || dateIdx === -1) {
+        toast.error('CSV must include title and date columns');
+        return;
+      }
+      const payload = rows
+        .map(row => row.split(',').map(col => col.trim()))
+        .filter(cols => cols[titleIdx] && cols[dateIdx])
+        .map(cols => ({
+          title: cols[titleIdx],
+          date: cols[dateIdx],
+          description: descIdx !== -1 ? cols[descIdx] || undefined : undefined,
+        }));
+
+      if (payload.length === 0) {
+        toast.error('No valid rows found in CSV');
+        return;
+      }
+
+      await holidayService.bulkUploadHolidays(payload);
       toast.success('Holidays uploaded successfully');
       fetchHolidays();
     } catch (error) {
@@ -193,6 +219,16 @@ export const HolidayManagement: React.FC = () => {
                 placeholder="Additional details about the holiday"
               />
             </div>
+            <div className="flex items-center">
+              <input
+                id="is_active"
+                type="checkbox"
+                checked={newHoliday.is_active}
+                onChange={(e) => setNewHoliday({ ...newHoliday, is_active: e.target.checked })}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              />
+              <label htmlFor="is_active" className="ml-2 block text-sm font-medium text-gray-700">Active</label>
+            </div>
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -254,12 +290,31 @@ export const HolidayManagement: React.FC = () => {
                       <div className="text-sm text-gray-500">
                         {format(new Date(holiday.date), 'MMMM dd, yyyy')}
                       </div>
+                      <div className="text-xs mt-1">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${holiday.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {holiday.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
                       {holiday.description && (
                         <div className="text-sm text-gray-500">{holiday.description}</div>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await holidayService.updateHoliday(holiday.id, { is_active: !holiday.is_active });
+                          toast.success('Holiday status updated');
+                          fetchHolidays();
+                        } catch (error) {
+                          toast.error('Failed to update status');
+                        }
+                      }}
+                      className="text-gray-700 hover:text-gray-900 text-sm font-medium"
+                    >
+                      {holiday.is_active ? 'Deactivate' : 'Activate'}
+                    </button>
                     <button
                       onClick={() => setEditingHoliday(holiday)}
                       className="text-blue-600 hover:text-blue-900 text-sm font-medium"

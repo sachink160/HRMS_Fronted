@@ -78,7 +78,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Login failed');
+      // Handle different types of error details
+      let errorMessage = 'Login failed';
+      if (error.response?.data?.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          // Validation errors - extract the first error message
+          const firstError = error.response.data.detail[0];
+          if (firstError && typeof firstError === 'object' && firstError.msg) {
+            errorMessage = firstError.msg;
+          } else {
+            errorMessage = 'Validation error occurred';
+          }
+        } else if (typeof error.response.data.detail === 'string') {
+          // Simple string error
+          errorMessage = error.response.data.detail;
+        }
+      }
+      throw new Error(errorMessage);
     }
   };
 

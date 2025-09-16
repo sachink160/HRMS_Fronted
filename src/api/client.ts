@@ -35,7 +35,22 @@ api.interceptors.response.use(
       window.location.href = '/login';
       toast.error('Session expired. Please login again.');
     } else if (error.response?.data?.detail) {
-      toast.error(error.response.data.detail);
+      // Handle different types of error details
+      if (Array.isArray(error.response.data.detail)) {
+        // Validation errors - extract the first error message
+        const firstError = error.response.data.detail[0];
+        if (firstError && typeof firstError === 'object' && firstError.msg) {
+          toast.error(firstError.msg);
+        } else {
+          toast.error('Validation error occurred');
+        }
+      } else if (typeof error.response.data.detail === 'string') {
+        // Simple string error
+        toast.error(error.response.data.detail);
+      } else {
+        // Fallback for other error types
+        toast.error('An error occurred. Please try again.');
+      }
     } else {
       toast.error('An error occurred. Please try again.');
     }

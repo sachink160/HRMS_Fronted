@@ -3,6 +3,8 @@ import { userService } from '../../api/services';
 import { Users, Plus, Edit, Trash2, UserCheck, UserX, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import { UserCreationModal } from '../../components/UserCreationModal';
+import { UserEditModal } from '../../components/UserEditModal';
 
 interface User {
   id: number;
@@ -12,6 +14,8 @@ interface User {
   is_active: boolean;
   created_at: string;
   phone?: string;
+  designation?: string;
+  joining_date?: string;
 }
 
 export const UserManagement: React.FC = () => {
@@ -20,6 +24,9 @@ export const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -53,6 +60,37 @@ export const UserManagement: React.FC = () => {
       fetchUsers();
     } catch (error) {
       toast.error('Failed to promote user');
+    }
+  };
+
+  const handleUserCreated = () => {
+    fetchUsers();
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUserUpdated = () => {
+    fetchUsers();
+  };
+
+  const handleDeleteUser = async (userId: number, userName: string, userRole: string) => {
+    // Prevent deletion of super admin users
+    if (userRole === 'super_admin') {
+      toast.error('Cannot delete super admin users');
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
+      try {
+        await userService.deleteUser(userId);
+        toast.success('User deleted successfully');
+        fetchUsers();
+      } catch (error) {
+        toast.error('Failed to delete user');
+      }
     }
   };
 
@@ -101,8 +139,8 @@ export const UserManagement: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
-        <h2 className="text-2xl font-bold">User Management</h2>
-        <p className="text-blue-100">Manage users, roles, and permissions</p>
+        <h2 className="text-2xl font-bold">Employee Management</h2>
+        <p className="text-blue-100">Manage employees, designations, and roles</p>
       </div>
 
       {/* Controls */}
@@ -112,13 +150,13 @@ export const UserManagement: React.FC = () => {
             {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
-              />
+            <input
+              type="text"
+              placeholder="Search employees..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+            />
             </div>
 
             {/* Role Filter */}
@@ -145,10 +183,13 @@ export const UserManagement: React.FC = () => {
             </select>
           </div>
 
-          {/* Add User Button */}
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          {/* Add Employee Button */}
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
             <Plus className="h-4 w-4 mr-2" />
-            Add User
+            Add Employee
           </button>
         </div>
       </div>
@@ -157,18 +198,18 @@ export const UserManagement: React.FC = () => {
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Users ({filteredUsers.length})
+            Employees ({filteredUsers.length})
           </h3>
         </div>
         
         {filteredUsers.length === 0 ? (
           <div className="text-center py-12">
             <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No employees found</h3>
             <p className="mt-1 text-sm text-gray-500">
               {searchTerm || roleFilter !== 'all' || statusFilter !== 'all'
                 ? 'Try adjusting your search or filter criteria.'
-                : 'Get started by adding a new user.'}
+                : 'Get started by adding a new employee.'}
             </p>
           </div>
         ) : (
@@ -195,8 +236,14 @@ export const UserManagement: React.FC = () => {
                       {user.phone && (
                         <div className="text-sm text-gray-500">{user.phone}</div>
                       )}
+                      {user.designation && (
+                        <div className="text-sm text-gray-500 font-medium">{user.designation}</div>
+                      )}
                       <div className="text-sm text-gray-500">
-                        Joined {format(new Date(user.created_at), 'MMM dd, yyyy')}
+                        {user.joining_date 
+                          ? `Joined ${format(new Date(user.joining_date), 'MMM dd, yyyy')}`
+                          : `Created ${format(new Date(user.created_at), 'MMM dd, yyyy')}`
+                        }
                       </div>
                     </div>
                   </div>
@@ -237,6 +284,7 @@ export const UserManagement: React.FC = () => {
 
                       {/* Edit User */}
                       <button
+                        onClick={() => handleEditUser(user)}
                         className="p-2 text-gray-600 hover:bg-gray-50 rounded-md"
                         title="Edit User"
                       >
@@ -245,8 +293,14 @@ export const UserManagement: React.FC = () => {
 
                       {/* Delete User */}
                       <button
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-                        title="Delete User"
+                        onClick={() => handleDeleteUser(user.id, user.name, user.role)}
+                        className={`p-2 rounded-md ${
+                          user.role === 'super_admin'
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-red-600 hover:bg-red-50'
+                        }`}
+                        title={user.role === 'super_admin' ? 'Cannot delete super admin' : 'Delete User'}
+                        disabled={user.role === 'super_admin'}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -262,11 +316,11 @@ export const UserManagement: React.FC = () => {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Total Users</div>
+          <div className="text-sm font-medium text-gray-500">Total Employees</div>
           <div className="text-2xl font-bold text-gray-900">{users.length}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Active Users</div>
+          <div className="text-sm font-medium text-gray-500">Active Employees</div>
           <div className="text-2xl font-bold text-green-600">
             {users.filter(u => u.is_active).length}
           </div>
@@ -278,12 +332,30 @@ export const UserManagement: React.FC = () => {
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Regular Users</div>
+          <div className="text-sm font-medium text-gray-500">Regular Employees</div>
           <div className="text-2xl font-bold text-gray-600">
             {users.filter(u => u.role === 'user').length}
           </div>
         </div>
       </div>
+
+      {/* User Creation Modal */}
+      <UserCreationModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onUserCreated={handleUserCreated}
+      />
+
+      {/* User Edit Modal */}
+      <UserEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onUserUpdated={handleUserUpdated}
+        user={selectedUser}
+      />
     </div>
   );
 };

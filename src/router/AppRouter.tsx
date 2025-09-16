@@ -16,6 +16,7 @@ import { LeaveManagement } from '../pages/admin/LeaveManagement';
 import { HolidayManagement } from '../pages/admin/HolidayManagement';
 import { Reports } from '../pages/admin/Reports';
 import { RoleBasedDashboard } from '../components/RoleBasedDashboard';
+import { Settings } from '../pages/admin/Settings';
 
 export const AppRouter: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -146,6 +147,17 @@ export const AppRouter: React.FC = () => {
             <ProtectedRoute adminOnly>
               <Layout>
                 <Reports />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute adminOnly>
+              <Layout>
+                <Settings />
               </Layout>
             </ProtectedRoute>
           }
