@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { UserCreationModal } from '../../components/UserCreationModal';
 import { UserEditModal } from '../../components/UserEditModal';
+import { HolidayCreationModal } from '../../components/HolidayCreationModal';
 
 interface DashboardStats {
   total_users: number;
@@ -56,6 +57,7 @@ export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'leaves' | 'users' | 'holidays'>('overview');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -122,6 +124,10 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleUserUpdated = () => {
+    fetchDashboardData();
+  };
+
+  const handleHolidayCreated = () => {
     fetchDashboardData();
   };
 
@@ -386,7 +392,10 @@ export const AdminDashboard: React.FC = () => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-900">Holiday Management</h3>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button 
+                  onClick={() => setIsHolidayModalOpen(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Holiday
                 </button>
@@ -412,16 +421,10 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <button 
-                            onClick={() => handleEditUser(user)}
-                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                            title="Edit User"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
                           <button
                             onClick={() => handleDeleteHoliday(holiday.id)}
                             className="text-red-600 hover:text-red-900 text-sm font-medium"
+                            title="Delete Holiday"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -452,6 +455,13 @@ export const AdminDashboard: React.FC = () => {
         }}
         onUserUpdated={handleUserUpdated}
         user={selectedUser}
+      />
+
+      {/* Holiday Creation Modal */}
+      <HolidayCreationModal
+        isOpen={isHolidayModalOpen}
+        onClose={() => setIsHolidayModalOpen(false)}
+        onHolidayCreated={handleHolidayCreated}
       />
     </div>
   );

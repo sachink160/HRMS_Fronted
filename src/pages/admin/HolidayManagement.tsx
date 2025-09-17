@@ -3,6 +3,7 @@ import { holidayService } from '../../api/services';
 import { Calendar, Plus, Edit, Trash2, Search, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import { HolidayEditModal } from '../../components/HolidayEditModal';
 
 interface Holiday {
   id: number;
@@ -19,6 +20,7 @@ export const HolidayManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newHoliday, setNewHoliday] = useState({
     title: '',
     date: '',
@@ -69,6 +71,15 @@ export const HolidayManagement: React.FC = () => {
         toast.error('Failed to delete holiday');
       }
     }
+  };
+
+  const handleEditHoliday = (holiday: Holiday) => {
+    setEditingHoliday(holiday);
+    setIsEditModalOpen(true);
+  };
+
+  const handleHolidayUpdated = () => {
+    fetchHolidays();
   };
 
   const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,8 +327,9 @@ export const HolidayManagement: React.FC = () => {
                       {holiday.is_active ? 'Deactivate' : 'Activate'}
                     </button>
                     <button
-                      onClick={() => setEditingHoliday(holiday)}
+                      onClick={() => handleEditHoliday(holiday)}
                       className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                      title="Edit Holiday"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -358,8 +370,16 @@ export const HolidayManagement: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
+                      onClick={() => handleEditHoliday(holiday)}
+                      className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                      title="Edit Holiday"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => handleDeleteHoliday(holiday.id)}
                       className="text-red-600 hover:text-red-900 text-sm font-medium"
+                      title="Delete Holiday"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -370,6 +390,17 @@ export const HolidayManagement: React.FC = () => {
           </ul>
         </div>
       )}
+
+      {/* Holiday Edit Modal */}
+      <HolidayEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingHoliday(null);
+        }}
+        onHolidayUpdated={handleHolidayUpdated}
+        holiday={editingHoliday}
+      />
     </div>
   );
 };

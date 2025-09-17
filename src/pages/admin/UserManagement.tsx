@@ -272,7 +272,7 @@ export const UserManagement: React.FC = () => {
                       </button>
 
                       {/* Promote to Admin (only for regular users) */}
-                      {user.role === 'user' && (
+                      {/* {user.role === 'user' && (
                         <button
                           onClick={() => handlePromoteToAdmin(user.id)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
@@ -280,7 +280,7 @@ export const UserManagement: React.FC = () => {
                         >
                           <Edit className="h-4 w-4" />
                         </button>
-                      )}
+                      )} */}
 
                       {/* Edit User */}
                       <button
