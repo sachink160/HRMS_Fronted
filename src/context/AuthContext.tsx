@@ -8,6 +8,12 @@ interface User {
   phone?: string;
   role: 'user' | 'admin' | 'super_admin';
   is_active: boolean;
+  designation?: string;
+  joining_date?: string;
+  profile_image?: string;
+  aadhaar_front?: string;
+  aadhaar_back?: string;
+  pan_image?: string;
 }
 
 interface AuthContextType {

@@ -70,6 +70,39 @@ export const userService = {
   
   listUsers: (offset = 0, limit = 10) =>
     api.get('/users', { params: { offset, limit } }),
+  
+  // File upload services
+  uploadProfileImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/users/upload-profile-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  
+  uploadAadhaarFront: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/users/upload-aadhaar-front', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  
+  uploadAadhaarBack: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/users/upload-aadhaar-back', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  
+  uploadPan: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/users/upload-pan', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 // Leave Services
@@ -216,6 +249,34 @@ export const adminService = {
   
   deleteUser: (userId: number) =>
     api.delete(`/admin/users/${userId}`),
+
+  // Document approvals (super admin)
+  approveDocument: (userId: number, docType: 'profile'|'aadhaar_front'|'aadhaar_back'|'pan') =>
+    api.put(`/admin/users/${userId}/documents/${docType}/approve`),
+  rejectDocument: (userId: number, docType: 'profile'|'aadhaar_front'|'aadhaar_back'|'pan', reason?: string) =>
+    api.put(`/admin/users/${userId}/documents/${docType}/reject`, { reason }),
+
+  // Super admin uploads on behalf of users
+  uploadUserProfileImage: (userId: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/admin/users/${userId}/upload-profile-image`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadUserAadhaarFront: (userId: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/admin/users/${userId}/upload-aadhaar-front`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadUserAadhaarBack: (userId: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/admin/users/${userId}/upload-aadhaar-back`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadUserPan: (userId: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/admin/users/${userId}/upload-pan`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
   
   // Leave Management
   getAllLeaves: (offset = 0, limit = 10, statusFilter?: string) =>

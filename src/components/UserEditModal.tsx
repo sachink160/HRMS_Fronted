@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, Shield, Briefcase, Calendar } from 'lucide-react';
-import { userService } from '../api/services';
+import { userService, adminService } from '../api/services';
+import { FileUpload } from './FileUpload';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 interface User {
@@ -37,6 +39,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   onUserUpdated,
   user,
 }) => {
+  const { user: currentUser } = useAuth();
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
@@ -47,6 +50,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<UserFormData>>({});
+  const [uploading, setUploading] = useState({ profile:false, aadhaarFront:false, aadhaarBack:false, pan:false });
 
   useEffect(() => {
     if (user) {
@@ -145,9 +149,29 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
   if (!isOpen || !user) return null;
 
+  const canUploadDocs = currentUser?.role === 'super_admin';
+  const canModerateDocs = currentUser && currentUser.role !== 'user';
+  const getFileUrl = (filePath?: string) => filePath ? (filePath.startsWith('http') ? filePath : `http://localhost:8000/${filePath}`) : null;
+  const handleUpload = async (type: 'profile'|'aadhaarFront'|'aadhaarBack'|'pan', file: File) => {
+    if (!user) return;
+    setUploading(prev => ({ ...prev, [type]: true }));
+    try {
+      if (type === 'profile') await adminService.uploadUserProfileImage(user.id, file);
+      if (type === 'aadhaarFront') await adminService.uploadUserAadhaarFront(user.id, file);
+      if (type === 'aadhaarBack') await adminService.uploadUserAadhaarBack(user.id, file);
+      if (type === 'pan') await adminService.uploadUserPan(user.id, file);
+      toast.success('Document uploaded (status set to Pending)');
+      onUserUpdated();
+    } catch (e:any) {
+      toast.error(e?.response?.data?.detail || 'Upload failed');
+    } finally {
+      setUploading(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Edit Employee</h3>
@@ -160,9 +184,16 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Name Field */}
-          <div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Error Summary */}
+          {Object.keys(errors).length > 0 && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">Please correct the highlighted fields.</div>
+          )}
+
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Name Field */}
+            <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
             </label>
@@ -181,10 +212,10 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             {errors.name && (
               <p className="mt-1 text-sm text-red-600">{errors.name}</p>
             )}
-          </div>
+            </div>
 
-          {/* Email Field */}
-          <div>
+            {/* Email Field */}
+            <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
             </label>
@@ -203,10 +234,10 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             {errors.email && (
               <p className="mt-1 text-sm text-red-600">{errors.email}</p>
             )}
-          </div>
+            </div>
 
-          {/* Phone Field */}
-          <div>
+            {/* Phone Field */}
+            <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Phone Number
             </label>
@@ -216,6 +247,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
+                onBlur={(e) => handleInputChange('phone', e.target.value.replace(/[^0-9]/g, ''))}
                 className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.phone ? 'border-red-300' : 'border-gray-300'
                 }`}
@@ -225,10 +257,10 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             {errors.phone && (
               <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
             )}
-          </div>
+            </div>
 
-          {/* Designation Field */}
-          <div>
+            {/* Designation Field */}
+            <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Designation
             </label>
@@ -247,10 +279,10 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             {errors.designation && (
               <p className="mt-1 text-sm text-red-600">{errors.designation}</p>
             )}
-          </div>
+            </div>
 
-          {/* Joining Date Field */}
-          <div>
+            {/* Joining Date Field */}
+            <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Joining Date
             </label>
@@ -268,6 +300,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             {errors.joining_date && (
               <p className="mt-1 text-sm text-red-600">{errors.joining_date}</p>
             )}
+            </div>
           </div>
 
           {/* Role Field */}
@@ -292,6 +325,152 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             )}
           </div>
 
+          {/* Documents (Super Admin) */}
+          {(canUploadDocs || canModerateDocs) && (
+            <div className="pt-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Identity Documents</h4>
+                  <p className="text-xs text-gray-500">Upload your identity documents for verification</p>
+                </div>
+                {canModerateDocs && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const tasks: Promise<any>[] = [];
+                        const u: any = user;
+                        if (u?.aadhaar_front && u?.aadhaar_front_status === 'pending') tasks.push(adminService.approveDocument(user.id, 'aadhaar_front'));
+                        if (u?.aadhaar_back && u?.aadhaar_back_status === 'pending') tasks.push(adminService.approveDocument(user.id, 'aadhaar_back'));
+                        if (u?.pan_image && u?.pan_image_status === 'pending') tasks.push(adminService.approveDocument(user.id, 'pan'));
+                        if (tasks.length === 0) {
+                          toast('No pending documents', { icon: 'ℹ️' });
+                          return;
+                        }
+                        await Promise.all(tasks);
+                        toast.success('All pending documents approved');
+                        onUserUpdated();
+                      } catch (e) {
+                        toast.error('Approve all failed');
+                      }
+                    }}
+                    className="text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                  >
+                    Approve All Pending
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Profile Image */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h5 className="text-sm font-medium text-gray-900">Profile Image</h5>
+                  </div>
+                  <FileUpload
+                    label="Profile Image"
+                    accept=".jpg,.jpeg,.png"
+                    onFileSelect={(f) => handleUpload('profile', f)}
+                    isLoading={uploading.profile}
+                    currentFile={user as any && (user as any).profile_image ? (user as any).profile_image.split('/').pop() : null}
+                    currentUrl={getFileUrl((user as any)?.profile_image)}
+                    className=""
+                    variant="compact"
+                  />
+                  {(user as any)?.profile_image && (
+                    <a className="text-xs text-blue-600" href={getFileUrl((user as any).profile_image) || '#'} target="_blank" rel="noreferrer">View current document</a>
+                  )}
+                </div>
+
+                {/* Aadhaar Front */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h5 className="text-sm font-medium text-gray-900">Aadhaar Card (Front)</h5>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${((user as any)?.aadhaar_front_status==='approved')?'bg-green-100 text-green-800':((user as any)?.aadhaar_front_status==='rejected')?'bg-red-100 text-red-800':((user as any)?.aadhaar_front_status==='pending')?'bg-yellow-100 text-yellow-800':'bg-gray-100 text-gray-700'}`}>{(user as any)?.aadhaar_front_status || '—'}</span>
+                  </div>
+                  <FileUpload
+                    label="Upload file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onFileSelect={(f) => handleUpload('aadhaarFront', f)}
+                    isLoading={uploading.aadhaarFront}
+                    currentFile={(user as any)?.aadhaar_front ? (user as any).aadhaar_front.split('/').pop() : null}
+                    currentUrl={getFileUrl((user as any)?.aadhaar_front)}
+                    className=""
+                    variant="compact"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    {(user as any)?.aadhaar_front && (
+                      <a className="text-xs text-blue-600" href={getFileUrl((user as any).aadhaar_front) || '#'} target="_blank" rel="noreferrer">View current document</a>
+                    )}
+                    {canModerateDocs && (user as any)?.aadhaar_front && (
+                      <div className="space-x-3">
+                        <button type="button" onClick={async()=>{await adminService.approveDocument(user.id,'aadhaar_front'); toast.success('Approved'); onUserUpdated();}} className="text-xs text-green-700 hover:underline">Approve</button>
+                        <button type="button" onClick={async()=>{const reason=window.prompt('Reason (optional)')||undefined; await adminService.rejectDocument(user.id,'aadhaar_front',reason); toast.success('Rejected'); onUserUpdated();}} className="text-xs text-red-700 hover:underline">Reject</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Aadhaar Back */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h5 className="text-sm font-medium text-gray-900">Aadhaar Card (Back)</h5>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${((user as any)?.aadhaar_back_status==='approved')?'bg-green-100 text-green-800':((user as any)?.aadhaar_back_status==='rejected')?'bg-red-100 text-red-800':((user as any)?.aadhaar_back_status==='pending')?'bg-yellow-100 text-yellow-800':'bg-gray-100 text-gray-700'}`}>{(user as any)?.aadhaar_back_status || '—'}</span>
+                  </div>
+                  <FileUpload
+                    label="Upload file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onFileSelect={(f) => handleUpload('aadhaarBack', f)}
+                    isLoading={uploading.aadhaarBack}
+                    currentFile={(user as any)?.aadhaar_back ? (user as any).aadhaar_back.split('/').pop() : null}
+                    currentUrl={getFileUrl((user as any)?.aadhaar_back)}
+                    className=""
+                    variant="compact"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    {(user as any)?.aadhaar_back && (
+                      <a className="text-xs text-blue-600" href={getFileUrl((user as any).aadhaar_back) || '#'} target="_blank" rel="noreferrer">View current document</a>
+                    )}
+                    {canModerateDocs && (user as any)?.aadhaar_back && (
+                      <div className="space-x-3">
+                        <button type="button" onClick={async()=>{await adminService.approveDocument(user.id,'aadhaar_back'); toast.success('Approved'); onUserUpdated();}} className="text-xs text-green-700 hover:underline">Approve</button>
+                        <button type="button" onClick={async()=>{const reason=window.prompt('Reason (optional)')||undefined; await adminService.rejectDocument(user.id,'aadhaar_back',reason); toast.success('Rejected'); onUserUpdated();}} className="text-xs text-red-700 hover:underline">Reject</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* PAN */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h5 className="text-sm font-medium text-gray-900">PAN</h5>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${((user as any)?.pan_image_status==='approved')?'bg-green-100 text-green-800':((user as any)?.pan_image_status==='rejected')?'bg-red-100 text-red-800':((user as any)?.pan_image_status==='pending')?'bg-yellow-100 text-yellow-800':'bg-gray-100 text-gray-700'}`}>{(user as any)?.pan_image_status || '—'}</span>
+                  </div>
+                  <FileUpload
+                    label="Upload file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onFileSelect={(f) => handleUpload('pan', f)}
+                    isLoading={uploading.pan}
+                    currentFile={(user as any)?.pan_image ? (user as any).pan_image.split('/').pop() : null}
+                    currentUrl={getFileUrl((user as any)?.pan_image)}
+                    className=""
+                    variant="compact"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    {(user as any)?.pan_image && (
+                      <a className="text-xs text-blue-600" href={getFileUrl((user as any).pan_image) || '#'} target="_blank" rel="noreferrer">View current document</a>
+                    )}
+                    {canModerateDocs && (user as any)?.pan_image && (
+                      <div className="space-x-3">
+                        <button type="button" onClick={async()=>{await adminService.approveDocument(user.id,'pan'); toast.success('Approved'); onUserUpdated();}} className="text-xs text-green-700 hover:underline">Approve</button>
+                        <button type="button" onClick={async()=>{const reason=window.prompt('Reason (optional)')||undefined; await adminService.rejectDocument(user.id,'pan',reason); toast.success('Rejected'); onUserUpdated();}} className="text-xs text-red-700 hover:underline">Reject</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3 pt-4">
             <button
@@ -306,7 +485,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
               disabled={isLoading}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Updating...' : 'Update Employee'}
+              {isLoading ? 'Updating…' : 'Update Employee'}
             </button>
           </div>
         </form>

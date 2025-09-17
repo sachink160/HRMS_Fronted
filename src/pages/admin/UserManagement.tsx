@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../../api/services';
-import { Users, Plus, Edit, Trash2, UserCheck, UserX, Search } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, UserCheck, UserX, Search, FileText, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { UserCreationModal } from '../../components/UserCreationModal';
 import { UserEditModal } from '../../components/UserEditModal';
+import { useAuth } from '../../context/AuthContext';
+import { adminService } from '../../api/services';
 
 interface User {
   id: number;
@@ -16,9 +18,14 @@ interface User {
   phone?: string;
   designation?: string;
   joining_date?: string;
+  profile_image?: string;
+  aadhaar_front?: string;
+  aadhaar_back?: string;
+  pan_image?: string;
 }
 
 export const UserManagement: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,15 +60,6 @@ export const UserManagement: React.FC = () => {
     }
   };
 
-  const handlePromoteToAdmin = async (userId: number) => {
-    try {
-      await userService.promoteToAdmin(userId);
-      toast.success('User promoted to admin successfully');
-      fetchUsers();
-    } catch (error) {
-      toast.error('Failed to promote user');
-    }
-  };
 
   const handleUserCreated = () => {
     fetchUsers();
@@ -74,6 +72,42 @@ export const UserManagement: React.FC = () => {
 
   const handleUserUpdated = () => {
     fetchUsers();
+  };
+
+  const getFileUrl = (filePath: string | null | undefined) => {
+    if (!filePath) return null;
+    return filePath.startsWith('http') ? filePath : `http://localhost:8000/${filePath}`;
+  };
+
+  const getFileIcon = (filename: string) => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension || '')) {
+      return <Image className="w-4 h-4 text-blue-500" />;
+    }
+    return <FileText className="w-4 h-4 text-gray-500" />;
+  };
+
+  const canApprove = currentUser?.role === 'super_admin';
+
+  const handleApprove = async (userId: number, docType: 'profile'|'aadhaar_front'|'aadhaar_back'|'pan') => {
+    try {
+      await adminService.approveDocument(userId, docType);
+      toast.success('Document approved');
+      fetchUsers();
+    } catch (e) {
+      toast.error('Failed to approve');
+    }
+  };
+
+  const handleReject = async (userId: number, docType: 'profile'|'aadhaar_front'|'aadhaar_back'|'pan') => {
+    const reason = window.prompt('Enter rejection reason (optional):') || undefined;
+    try {
+      await adminService.rejectDocument(userId, docType, reason);
+      toast.success('Document rejected');
+      fetchUsers();
+    } catch (e) {
+      toast.error('Failed to reject');
+    }
   };
 
   const handleDeleteUser = async (userId: number, userName: string, userRole: string) => {
@@ -219,13 +253,21 @@ export const UserManagement: React.FC = () => {
                 <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-12 w-12">
-                      <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-lg font-medium text-gray-700">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      {user.profile_image ? (
+                        <img
+                          src={getFileUrl(user.profile_image) || ''}
+                          alt={user.name}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span className="text-lg font-medium text-gray-700">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-4 flex-1">
                       <div className="flex items-center space-x-2">
                         <h4 className="text-lg font-medium text-gray-900">{user.name}</h4>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
@@ -244,6 +286,74 @@ export const UserManagement: React.FC = () => {
                           ? `Joined ${format(new Date(user.joining_date), 'MMM dd, yyyy')}`
                           : `Created ${format(new Date(user.created_at), 'MMM dd, yyyy')}`
                         }
+                      </div>
+                      
+                      {/* Identity Documents Status + Actions */}
+                      <div className="mt-2 flex items-center space-x-4">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs text-gray-500">Documents:</span>
+                          {user.aadhaar_front && (
+                            <a
+                              href={getFileUrl(user.aadhaar_front) || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
+                              title="View Aadhaar Front"
+                            >
+                              {getFileIcon(user.aadhaar_front)}
+                              <span className="ml-1">Aadhaar F</span>
+                            </a>
+                          )}
+                          {user.aadhaar_back && (
+                            <a
+                              href={getFileUrl(user.aadhaar_back) || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
+                              title="View Aadhaar Back"
+                            >
+                              {getFileIcon(user.aadhaar_back)}
+                              <span className="ml-1">Aadhaar B</span>
+                            </a>
+                          )}
+                          {user.pan_image && (
+                            <a
+                              href={getFileUrl(user.pan_image) || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
+                              title="View PAN"
+                            >
+                              {getFileIcon(user.pan_image)}
+                              <span className="ml-1">PAN</span>
+                            </a>
+                          )}
+                          {!user.aadhaar_front && !user.aadhaar_back && !user.pan_image && (
+                            <span className="text-xs text-gray-400">No documents uploaded</span>
+                          )}
+                        </div>
+                        {canApprove && (
+                          <div className="flex items-center space-x-2">
+                            {user.aadhaar_front && (
+                              <>
+                                <button className="text-green-600 text-xs" onClick={() => handleApprove(user.id, 'aadhaar_front')}>Approve Aadhaar F</button>
+                                <button className="text-red-600 text-xs" onClick={() => handleReject(user.id, 'aadhaar_front')}>Reject</button>
+                              </>
+                            )}
+                            {user.aadhaar_back && (
+                              <>
+                                <button className="text-green-600 text-xs" onClick={() => handleApprove(user.id, 'aadhaar_back')}>Approve Aadhaar B</button>
+                                <button className="text-red-600 text-xs" onClick={() => handleReject(user.id, 'aadhaar_back')}>Reject</button>
+                              </>
+                            )}
+                            {user.pan_image && (
+                              <>
+                                <button className="text-green-600 text-xs" onClick={() => handleApprove(user.id, 'pan')}>Approve PAN</button>
+                                <button className="text-red-600 text-xs" onClick={() => handleReject(user.id, 'pan')}>Reject</button>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
