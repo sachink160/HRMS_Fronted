@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../../api/services';
-import { Users, Plus, Edit, Trash2, UserCheck, UserX, Search, FileText, Image } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, UserCheck, UserX, Search, FileText, Image, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { UserCreationModal } from '../../components/UserCreationModal';
 import { UserEditModal } from '../../components/UserEditModal';
+import { UserViewModal } from '../../components/UserViewModal';
 import { useAuth } from '../../context/AuthContext';
-import { adminService } from '../../api/services';
+import { getFileUrl } from '../../utils/apiUtils';
 
 interface User {
   id: number;
   name: string;
   email: string;
+  wifi_user_id?: string;
   role: 'user' | 'admin' | 'super_admin';
   is_active: boolean;
   created_at: string;
@@ -25,7 +27,7 @@ interface User {
 }
 
 export const UserManagement: React.FC = () => {
-  const { user: currentUser } = useAuth();
+  useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +35,7 @@ export const UserManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -70,14 +73,15 @@ export const UserManagement: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+    setIsViewModalOpen(true);
+  };
+
   const handleUserUpdated = () => {
     fetchUsers();
   };
 
-  const getFileUrl = (filePath: string | null | undefined) => {
-    if (!filePath) return null;
-    return filePath.startsWith('http') ? filePath : `http://localhost:8000/${filePath}`;
-  };
 
   const getFileIcon = (filename: string) => {
     const extension = filename.split('.').pop()?.toLowerCase();
@@ -87,28 +91,7 @@ export const UserManagement: React.FC = () => {
     return <FileText className="w-4 h-4 text-gray-500" />;
   };
 
-  const canApprove = currentUser?.role === 'super_admin';
-
-  const handleApprove = async (userId: number, docType: 'profile'|'aadhaar_front'|'aadhaar_back'|'pan') => {
-    try {
-      await adminService.approveDocument(userId, docType);
-      toast.success('Document approved');
-      fetchUsers();
-    } catch (e) {
-      toast.error('Failed to approve');
-    }
-  };
-
-  const handleReject = async (userId: number, docType: 'profile'|'aadhaar_front'|'aadhaar_back'|'pan') => {
-    const reason = window.prompt('Enter rejection reason (optional):') || undefined;
-    try {
-      await adminService.rejectDocument(userId, docType, reason);
-      toast.success('Document rejected');
-      fetchUsers();
-    } catch (e) {
-      toast.error('Failed to reject');
-    }
-  };
+  // Note: document approve/reject handlers are defined in edit modal.
 
   const handleDeleteUser = async (userId: number, userName: string, userRole: string) => {
     // Prevent deletion of super admin users
@@ -130,7 +113,8 @@ export const UserManagement: React.FC = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (user.wifi_user_id || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'all' || 
                          (statusFilter === 'active' && user.is_active) ||
@@ -159,6 +143,14 @@ export const UserManagement: React.FC = () => {
       default:
         return 'User';
     }
+  };
+
+  const getDocumentsCount = (u: User) => {
+    let count = 0;
+    if (u.aadhaar_front) count += 1;
+    if (u.aadhaar_back) count += 1;
+    if (u.pan_image) count += 1;
+    return count;
   };
 
   if (isLoading) {
@@ -247,179 +239,124 @@ export const UserManagement: React.FC = () => {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
-            {filteredUsers.map((user) => (
-              <li key={user.id}>
-                <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-12 w-12">
-                      {user.profile_image ? (
-                        <img
-                          src={getFileUrl(user.profile_image) || ''}
-                          alt={user.name}
-                          className="h-12 w-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-lg font-medium text-gray-700">
-                            {user.name.charAt(0).toUpperCase()}
-                          </span>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WiFi ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Docs</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    {/* Name */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0">
+                          {user.profile_image ? (
+                            <img src={getFileUrl(user.profile_image) || ''} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-700">{user.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="ml-4 flex-1">
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Contact */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <div>
+                        <a href={`mailto:${user.email}`} className="text-blue-600 hover:underline">{user.email}</a>
+                      </div>
+                      {user.phone && <div className="text-gray-500">{user.phone}</div>}
+                    </td>
+
+                    {/* WiFi ID */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{user.wifi_user_id || '-'}</td>
+
+                    {/* Role */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>{getRoleDisplayName(user.role)}</span>
+                    </td>
+
+                    {/* Designation */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{user.designation || '-'}</td>
+
+                    {/* Joined */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {user.joining_date ? format(new Date(user.joining_date), 'MMM dd, yyyy') : format(new Date(user.created_at), 'MMM dd, yyyy')}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{user.is_active ? 'Active' : 'Inactive'}</span>
+                    </td>
+
+                    {/* Docs */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex items-center space-x-2">
-                        <h4 className="text-lg font-medium text-gray-900">{user.name}</h4>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                          {getRoleDisplayName(user.role)}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
-                      {user.phone && (
-                        <div className="text-sm text-gray-500">{user.phone}</div>
-                      )}
-                      {user.designation && (
-                        <div className="text-sm text-gray-500 font-medium">{user.designation}</div>
-                      )}
-                      <div className="text-sm text-gray-500">
-                        {user.joining_date 
-                          ? `Joined ${format(new Date(user.joining_date), 'MMM dd, yyyy')}`
-                          : `Created ${format(new Date(user.created_at), 'MMM dd, yyyy')}`
-                        }
-                      </div>
-                      
-                      {/* Identity Documents Status + Actions */}
-                      <div className="mt-2 flex items-center space-x-4">
-                        <div className="flex items-center space-x-1">
-                          <span className="text-xs text-gray-500">Documents:</span>
-                          {user.aadhaar_front && (
-                            <a
-                              href={getFileUrl(user.aadhaar_front) || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
-                              title="View Aadhaar Front"
-                            >
-                              {getFileIcon(user.aadhaar_front)}
-                              <span className="ml-1">Aadhaar F</span>
-                            </a>
-                          )}
-                          {user.aadhaar_back && (
-                            <a
-                              href={getFileUrl(user.aadhaar_back) || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
-                              title="View Aadhaar Back"
-                            >
-                              {getFileIcon(user.aadhaar_back)}
-                              <span className="ml-1">Aadhaar B</span>
-                            </a>
-                          )}
-                          {user.pan_image && (
-                            <a
-                              href={getFileUrl(user.pan_image) || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
-                              title="View PAN"
-                            >
-                              {getFileIcon(user.pan_image)}
-                              <span className="ml-1">PAN</span>
-                            </a>
-                          )}
-                          {!user.aadhaar_front && !user.aadhaar_back && !user.pan_image && (
-                            <span className="text-xs text-gray-400">No documents uploaded</span>
-                          )}
-                        </div>
-                        {canApprove && (
-                          <div className="flex items-center space-x-2">
-                            {user.aadhaar_front && (
-                              <>
-                                <button className="text-green-600 text-xs" onClick={() => handleApprove(user.id, 'aadhaar_front')}>Approve Aadhaar F</button>
-                                <button className="text-red-600 text-xs" onClick={() => handleReject(user.id, 'aadhaar_front')}>Reject</button>
-                              </>
-                            )}
-                            {user.aadhaar_back && (
-                              <>
-                                <button className="text-green-600 text-xs" onClick={() => handleApprove(user.id, 'aadhaar_back')}>Approve Aadhaar B</button>
-                                <button className="text-red-600 text-xs" onClick={() => handleReject(user.id, 'aadhaar_back')}>Reject</button>
-                              </>
-                            )}
-                            {user.pan_image && (
-                              <>
-                                <button className="text-green-600 text-xs" onClick={() => handleApprove(user.id, 'pan')}>Approve PAN</button>
-                                <button className="text-red-600 text-xs" onClick={() => handleReject(user.id, 'pan')}>Reject</button>
-                              </>
-                            )}
-                          </div>
+                        <span className="text-xs text-gray-500">{getDocumentsCount(user)} of 3</span>
+                        {user.aadhaar_front && (
+                          <a href={getFileUrl(user.aadhaar_front) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800" title="Aadhaar Front">
+                            {getFileIcon(user.aadhaar_front)}
+                          </a>
+                        )}
+                        {user.aadhaar_back && (
+                          <a href={getFileUrl(user.aadhaar_back) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800" title="Aadhaar Back">
+                            {getFileIcon(user.aadhaar_back)}
+                          </a>
+                        )}
+                        {user.pan_image && (
+                          <a href={getFileUrl(user.pan_image) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800" title="PAN">
+                            {getFileIcon(user.pan_image)}
+                          </a>
                         )}
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    {/* Status Badge */}
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.is_active ? 'Active' : 'Inactive'}
-                    </span>
+                    </td>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center space-x-1">
-                      {/* Toggle Status */}
-                      <button
-                        onClick={() => handleToggleStatus(user.id)}
-                        className={`p-2 rounded-md ${
-                          user.is_active
-                            ? 'text-red-600 hover:bg-red-50'
-                            : 'text-green-600 hover:bg-green-50'
-                        }`}
-                        title={user.is_active ? 'Deactivate User' : 'Activate User'}
-                      >
-                        {user.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                      </button>
-
-                      {/* Promote to Admin (only for regular users) */}
-                      {/* {user.role === 'user' && (
+                    {/* Actions */}
+                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
+                      <div className="flex items-center justify-end space-x-1">
+                        <button onClick={() => handleViewUser(user)} className="p-2 text-gray-600 hover:bg-gray-50 rounded-md" title="View">
+                          <Eye className="h-4 w-4" />
+                        </button>
                         <button
-                          onClick={() => handlePromoteToAdmin(user.id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
-                          title="Promote to Admin"
+                          onClick={() => handleToggleStatus(user.id)}
+                          className={`p-2 rounded-md ${user.is_active ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
+                          title={user.is_active ? 'Deactivate User' : 'Activate User'}
                         >
+                          {user.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                        </button>
+                        <button onClick={() => handleEditUser(user)} className="p-2 text-gray-600 hover:bg-gray-50 rounded-md" title="Edit User">
                           <Edit className="h-4 w-4" />
                         </button>
-                      )} */}
-
-                      {/* Edit User */}
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        className="p-2 text-gray-600 hover:bg-gray-50 rounded-md"
-                        title="Edit User"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-
-                      {/* Delete User */}
-                      <button
-                        onClick={() => handleDeleteUser(user.id, user.name, user.role)}
-                        className={`p-2 rounded-md ${
-                          user.role === 'super_admin'
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-red-600 hover:bg-red-50'
-                        }`}
-                        title={user.role === 'super_admin' ? 'Cannot delete super admin' : 'Delete User'}
-                        disabled={user.role === 'super_admin'}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                        <button
+                          onClick={() => handleDeleteUser(user.id, user.name, user.role)}
+                          className={`p-2 rounded-md ${user.role === 'super_admin' ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:bg-red-50'}`}
+                          title={user.role === 'super_admin' ? 'Cannot delete super admin' : 'Delete User'}
+                          disabled={user.role === 'super_admin'}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -464,6 +401,16 @@ export const UserManagement: React.FC = () => {
           setSelectedUser(null);
         }}
         onUserUpdated={handleUserUpdated}
+        user={selectedUser}
+      />
+
+      {/* User View Modal */}
+      <UserViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedUser(null);
+        }}
         user={selectedUser}
       />
     </div>

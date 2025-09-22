@@ -15,6 +15,7 @@ interface UserFormData {
   phone: string;
   designation: string;
   joining_date: string;
+  wifi_user_id?: string;
   password: string;
   confirmPassword: string;
   role: 'user' | 'admin';
@@ -31,6 +32,7 @@ export const UserCreationModal: React.FC<UserCreationModalProps> = ({
     phone: '',
     designation: '',
     joining_date: '',
+    wifi_user_id: '',
     password: '',
     confirmPassword: '',
     role: 'user',
@@ -94,6 +96,7 @@ export const UserCreationModal: React.FC<UserCreationModalProps> = ({
         phone: formData.phone.trim(),
         designation: formData.designation.trim(),
         joining_date: formData.joining_date,
+        wifi_user_id: formData.wifi_user_id?.trim() || undefined,
         password: formData.password,
         role: formData.role,
       });
@@ -116,6 +119,7 @@ export const UserCreationModal: React.FC<UserCreationModalProps> = ({
       phone: '',
       designation: '',
       joining_date: '',
+      wifi_user_id: '',
       password: '',
       confirmPassword: '',
       role: 'user',
@@ -256,6 +260,24 @@ export const UserCreationModal: React.FC<UserCreationModalProps> = ({
             {errors.joining_date && (
               <p className="mt-1 text-sm text-red-600">{errors.joining_date}</p>
             )}
+          </div>
+
+          {/* WiFi User ID Field (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              WiFi User ID (optional)
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.wifi_user_id}
+                onChange={(e) => handleInputChange('wifi_user_id', e.target.value)}
+                className={`w-full pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  ''
+                }`}
+                placeholder="Enter WiFi portal user id"
+              />
+            </div>
           </div>
 
           {/* Role Field */}

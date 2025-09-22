@@ -3,6 +3,7 @@ import { X, User, Mail, Phone, Shield, Briefcase, Calendar } from 'lucide-react'
 import { userService, adminService } from '../api/services';
 import { FileUpload } from './FileUpload';
 import { useAuth } from '../context/AuthContext';
+import { getFileUrl } from '../utils/apiUtils';
 import toast from 'react-hot-toast';
 
 interface User {
@@ -12,6 +13,7 @@ interface User {
   phone?: string;
   designation?: string;
   joining_date?: string;
+  wifi_user_id?: string;
   role: 'user' | 'admin' | 'super_admin';
   is_active: boolean;
   created_at: string;
@@ -30,6 +32,7 @@ interface UserFormData {
   phone: string;
   designation: string;
   joining_date: string;
+  wifi_user_id?: string;
   role: 'user' | 'admin';
 }
 
@@ -46,6 +49,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     phone: '',
     designation: '',
     joining_date: '',
+    wifi_user_id: '',
     role: 'user',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +64,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
         phone: user.phone || '',
         designation: user.designation || '',
         joining_date: user.joining_date || '',
+        wifi_user_id: user.wifi_user_id || '',
         role: user.role === 'super_admin' ? 'admin' : user.role as 'user' | 'admin',
       });
     }
@@ -113,6 +118,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
         phone: formData.phone.trim(),
         designation: formData.designation.trim(),
         joining_date: formData.joining_date,
+        wifi_user_id: formData.wifi_user_id?.trim() || undefined,
         role: formData.role,
       });
       
@@ -134,6 +140,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
       phone: '',
       designation: '',
       joining_date: '',
+      wifi_user_id: '',
       role: 'user',
     });
     setErrors({});
@@ -151,7 +158,6 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
 
   const canUploadDocs = currentUser?.role === 'super_admin';
   const canModerateDocs = currentUser && currentUser.role !== 'user';
-  const getFileUrl = (filePath?: string) => filePath ? (filePath.startsWith('http') ? filePath : `http://localhost:8000/${filePath}`) : null;
   const handleUpload = async (type: 'profile'|'aadhaarFront'|'aadhaarBack'|'pan', file: File) => {
     if (!user) return;
     setUploading(prev => ({ ...prev, [type]: true }));
@@ -303,6 +309,24 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             </div>
           </div>
 
+          {/* WiFi User ID (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              WiFi User ID (optional)
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.wifi_user_id}
+                onChange={(e) => handleInputChange('wifi_user_id', e.target.value)}
+                className={`w-full pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  ''
+                }`}
+                placeholder="Enter WiFi portal user id"
+              />
+            </div>
+          </div>
+
           {/* Role Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -362,25 +386,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* Profile Image */}
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h5 className="text-sm font-medium text-gray-900">Profile Image</h5>
-                  </div>
-                  <FileUpload
-                    label="Profile Image"
-                    accept=".jpg,.jpeg,.png"
-                    onFileSelect={(f) => handleUpload('profile', f)}
-                    isLoading={uploading.profile}
-                    currentFile={user as any && (user as any).profile_image ? (user as any).profile_image.split('/').pop() : null}
-                    currentUrl={getFileUrl((user as any)?.profile_image)}
-                    className=""
-                    variant="compact"
-                  />
-                  {(user as any)?.profile_image && (
-                    <a className="text-xs text-blue-600" href={getFileUrl((user as any).profile_image) || '#'} target="_blank" rel="noreferrer">View current document</a>
-                  )}
-                </div>
-
+                
                 {/* Aadhaar Front */}
                 <div className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">

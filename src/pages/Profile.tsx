@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { authService, userService } from '../api/services';
 import { User, Phone, Mail, Save, Camera, FileText, Eye } from 'lucide-react';
 import { FileUpload } from '../components/FileUpload';
+import { getFileUrl } from '../utils/apiUtils';
 import toast from 'react-hot-toast';
 
 export const Profile: React.FC = () => {
@@ -88,10 +89,6 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const getFileUrl = (filePath: string | null | undefined) => {
-    if (!filePath) return null;
-    return filePath.startsWith('http') ? filePath : `http://localhost:8000/${filePath}`;
-  };
 
   const renderStatus = (status?: 'pending'|'approved'|'rejected'|null) => {
     if (!status) return null;

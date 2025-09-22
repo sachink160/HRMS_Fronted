@@ -33,12 +33,12 @@ export const userService = {
   getUserSummary: (userId: number) =>
     api.get(`/admin/user/${userId}/summary`),
   
-  createUser: (userData: { name: string; email: string; phone: string; designation: string; joining_date: string; password: string; role: 'user' | 'admin' }) =>
+  createUser: (userData: { name: string; email: string; phone: string; designation: string; joining_date: string; password: string; role: 'user' | 'admin'; wifi_user_id?: string }) =>
     api.post('/admin/users', userData, {
       params: { role: userData.role }
     }),
   
-  updateUser: (userId: number, userData: { name?: string; email?: string; phone?: string; designation?: string; joining_date?: string; role?: 'user' | 'admin' }) =>
+  updateUser: (userId: number, userData: { name?: string; email?: string; phone?: string; designation?: string; joining_date?: string; role?: 'user' | 'admin'; wifi_user_id?: string }) =>
     api.put(`/admin/users/${userId}`, userData),
   
   activateUser: (userId: number) =>
@@ -65,7 +65,7 @@ export const userService = {
   getProfile: () =>
     api.get('/users/profile'),
   
-  updateProfile: (userData: { name?: string; phone?: string; designation?: string; joining_date?: string }) =>
+  updateProfile: (userData: { name?: string; phone?: string; designation?: string; joining_date?: string; wifi_user_id?: string }) =>
     api.put('/users/profile', userData),
   
   listUsers: (offset = 0, limit = 10) =>
