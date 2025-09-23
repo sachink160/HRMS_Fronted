@@ -142,6 +142,96 @@ export const leaveService = {
     }),
 };
 
+// Email Services
+export const emailService = {
+  // Email Settings
+  getEmailSettings: () =>
+    api.get('/email/settings'),
+  
+  createEmailSettings: (settings: {
+    smtp_server: string;
+    smtp_port: number;
+    smtp_username: string;
+    smtp_password: string;
+    smtp_use_tls: boolean;
+    smtp_use_ssl: boolean;
+    from_email: string;
+    from_name: string;
+    is_active: boolean;
+  }) =>
+    api.post('/email/settings', settings),
+  
+  updateEmailSettings: (settingsId: number, settings: {
+    smtp_server?: string;
+    smtp_port?: number;
+    smtp_username?: string;
+    smtp_password?: string;
+    smtp_use_tls?: boolean;
+    smtp_use_ssl?: boolean;
+    from_email?: string;
+    from_name?: string;
+    is_active?: boolean;
+  }) =>
+    api.put(`/email/settings/${settingsId}`, settings),
+  
+  testEmailConnection: () =>
+    api.post('/email/settings/test-connection'),
+  
+  // Email Templates
+  getEmailTemplates: () =>
+    api.get('/email/templates'),
+  
+  createEmailTemplate: (template: {
+    name: string;
+    subject: string;
+    body: string;
+    template_type: string;
+    is_active: boolean;
+  }) =>
+    api.post('/email/templates', template),
+  
+  updateEmailTemplate: (templateId: number, template: {
+    name?: string;
+    subject?: string;
+    body?: string;
+    template_type?: string;
+    is_active?: boolean;
+  }) =>
+    api.put(`/email/templates/${templateId}`, template),
+  
+  deleteEmailTemplate: (templateId: number) =>
+    api.delete(`/email/templates/${templateId}`),
+  
+  // Email Sending
+  sendEmail: (emailData: {
+    recipient_email: string;
+    recipient_name?: string;
+    subject: string;
+    body: string;
+    template_type?: string;
+  }) =>
+    api.post('/email/send', emailData),
+  
+  sendBulkEmails: (emailData: {
+    recipient_emails: string[];
+    recipient_names?: string[];
+    subject: string;
+    body: string;
+    template_type?: string;
+  }) =>
+    api.post('/email/send-bulk', emailData),
+  
+  // Users for Email
+  getUsersForEmail: () =>
+    api.get('/email/users'),
+  
+  // Email Logs
+  getEmailLogs: (offset = 0, limit = 10, statusFilter?: string) =>
+    api.get('/email/logs', { 
+      params: { offset, limit, status_filter: statusFilter } 
+    }),
+};
+
 // Holiday Services
 export const holidayService = {
   // User holiday operations

@@ -117,20 +117,20 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
       </label>
       {description && (
-        <p className="text-xs text-gray-500">{description}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
       )}
       
       <div
         className={`relative border-2 border-dashed rounded-lg ${containerPad} ${minHeight} transition-colors ${
           dragActive
-            ? 'border-blue-400 bg-blue-50'
+            ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20'
             : currentFile || preview
-            ? 'border-green-400 bg-green-50'
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-green-400 dark:border-green-500 bg-green-50 dark:bg-green-900/20'
+            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -155,7 +155,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                   alt="Preview"
                   className="mx-auto h-24 w-24 object-cover rounded-lg shadow"
                 />
-                <p className="text-sm text-gray-600">Image Preview</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Image Preview</p>
               </div>
             ) : currentUrl && /\.(jpg|jpeg|png|gif)$/i.test(currentUrl) ? (
               <div className="space-y-2">
@@ -164,24 +164,24 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                   alt="Current"
                   className="mx-auto h-24 w-24 object-cover rounded-lg shadow"
                 />
-                <p className="text-xs text-gray-500">Current</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Current</p>
               </div>
             ) : currentFile ? (
               <div className="space-y-2">
                 {getFileIcon(currentFile)}
-                <p className="text-sm text-gray-600">{getFileType(currentFile)}</p>
-                <p className="text-xs text-gray-500 truncate">{currentFile}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{getFileType(currentFile)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{currentFile}</p>
               </div>
             ) : null}
             
             <div className="flex items-center justify-center space-x-2 mt-2">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-green-600">File uploaded</span>
+              <span className="text-sm text-green-600 dark:text-green-400">File uploaded</span>
               {onFileRemove && (
                 <button
                   type="button"
                   onClick={handleRemove}
-                  className="ml-2 px-2 py-1 text-xs rounded border border-red-200 text-red-600 hover:bg-red-50"
+                  className="ml-2 px-2 py-1 text-xs rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                   disabled={isLoading}
                 >
                   Remove
@@ -191,15 +191,15 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           </div>
         ) : (
           <div className="text-center">
-            <Upload className="mx-auto h-10 w-10 text-gray-400" />
+            <Upload className="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500" />
             <div className="mt-2">
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-blue-600 hover:text-blue-500">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
                   Click to upload
                 </span>{' '}
                 or drag and drop
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {accept} (max {maxSize}MB)
               </p>
             </div>

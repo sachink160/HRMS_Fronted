@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { adminService, leaveService, userService, holidayService } from '../../api/services';
-import { Users, FileText, Calendar, Clock, TrendingUp, CheckCircle, XCircle, Plus, Edit, Trash2 } from 'lucide-react';
+import { Users, FileText, Calendar, TrendingUp, CheckCircle, XCircle, Plus, Trash2, Mail, Settings, Send, History } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { UserCreationModal } from '../../components/UserCreationModal';
 import { UserEditModal } from '../../components/UserEditModal';
 import { HolidayCreationModal } from '../../components/HolidayCreationModal';
+import { EmailSettingsModal } from '../../components/EmailSettingsModal';
+import { EmailSendModal } from '../../components/EmailSendModal';
+import { EmailLogsModal } from '../../components/EmailLogsModal';
 
 interface DashboardStats {
   total_users: number;
@@ -33,7 +36,7 @@ interface User {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: 'user' | 'admin' | 'super_admin';
   is_active: boolean;
   created_at: string;
   phone?: string;
@@ -54,10 +57,13 @@ export const AdminDashboard: React.FC = () => {
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
   const [upcomingHolidays, setUpcomingHolidays] = useState<Holiday[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'leaves' | 'users' | 'holidays'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'leaves' | 'users' | 'holidays' | 'email'>('overview');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [isEmailSettingsModalOpen, setIsEmailSettingsModalOpen] = useState(false);
+  const [isEmailSendModalOpen, setIsEmailSendModalOpen] = useState(false);
+  const [isEmailLogsModalOpen, setIsEmailLogsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -118,10 +124,10 @@ export const AdminDashboard: React.FC = () => {
     fetchDashboardData();
   };
 
-  const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setIsEditModalOpen(true);
-  };
+  // const handleEditUser = (user: User) => {
+  //   setSelectedUser(user);
+  //   setIsEditModalOpen(true);
+  // };
 
   const handleUserUpdated = () => {
     fetchDashboardData();
@@ -145,28 +151,28 @@ export const AdminDashboard: React.FC = () => {
       value: stats?.total_users || 0,
       icon: Users,
       color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     },
     {
       name: 'Active Today',
       value: stats?.active_users_today || 0,
       icon: Users,
       color: 'bg-green-500',
-      bgColor: 'bg-green-50',
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
     },
     {
       name: 'Pending Leaves',
       value: stats?.pending_leaves || 0,
       icon: FileText,
       color: 'bg-yellow-500',
-      bgColor: 'bg-yellow-50',
+      bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
     },
     {
       name: 'Upcoming Holidays',
       value: stats?.upcoming_holidays || 0,
       icon: Calendar,
       color: 'bg-purple-500',
-      bgColor: 'bg-purple-50',
+      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
     },
   ];
 
@@ -179,23 +185,24 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors duration-200">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="-mb-px flex space-x-8 px-6">
             {[
               { id: 'overview', name: 'Overview', icon: TrendingUp },
               { id: 'leaves', name: 'Leave Management', icon: FileText },
               { id: 'users', name: 'User Management', icon: Users },
               { id: 'holidays', name: 'Holiday Management', icon: Calendar },
+              { id: 'email', name: 'Email Management', icon: Mail },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                    ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors duration-200`}
               >
                 <tab.icon className="h-5 w-5 mr-2" />
                 {tab.name}
@@ -210,19 +217,19 @@ export const AdminDashboard: React.FC = () => {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((stat) => (
-                  <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
+                  <div key={stat.name} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors duration-200">
                     <div className="p-6">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <div className={`p-3 rounded-md ${stat.bgColor}`}>
+                          <div className={`p-3 rounded-md ${stat.bgColor} dark:bg-opacity-20`}>
                             <stat.icon className={`h-6 w-6 text-white ${stat.color}`} />
                           </div>
                         </div>
                         <div className="ml-5 w-0 flex-1">
                           <dl>
-                            <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
+                            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{stat.name}</dt>
                             <dd className="flex items-baseline">
-                              <div className="text-2xl font-semibold text-gray-900">{stat.value}</div>
+                              <div className="text-2xl font-semibold text-gray-900 dark:text-white">{stat.value}</div>
                             </dd>
                           </dl>
                         </div>
@@ -234,18 +241,18 @@ export const AdminDashboard: React.FC = () => {
 
               {/* System Overview */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white shadow rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">User Activity</h3>
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">User Activity</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Active Today</span>
-                      <span className="text-sm font-medium text-green-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Active Today</span>
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
                         {stats?.active_users_today}/{stats?.total_users}
-                      </span>
+                      </span>  
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className="bg-green-600 h-2 rounded-full"
+                        className="bg-green-600 dark:bg-green-500 h-2 rounded-full"
                         style={{
                           width: `${stats?.total_users ? (stats.active_users_today / stats.total_users) * 100 : 0}%`,
                         }}
@@ -254,16 +261,16 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white shadow rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Leave Management</h3>
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Leave Management</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Pending Leaves</span>
-                      <span className="text-sm font-medium text-yellow-600">{stats?.pending_leaves}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Pending Leaves</span>
+                      <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{stats?.pending_leaves}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Upcoming Holidays</span>
-                      <span className="text-sm font-medium text-purple-600">{stats?.upcoming_holidays}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Upcoming Holidays</span>
+                      <span className="text-sm font-medium text-purple-600 dark:text-purple-400">{stats?.upcoming_holidays}</span>
                     </div>
                   </div>
                 </div>
@@ -274,36 +281,36 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'leaves' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Pending Leave Applications</h3>
-                <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Pending Leave Applications</h3>
+                <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-sm font-medium px-2.5 py-0.5 rounded-full">
                   {pendingLeaves.length} pending
                 </span>
               </div>
 
               {pendingLeaves.length === 0 ? (
                 <div className="text-center py-12">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No pending leaves</h3>
-                  <p className="mt-1 text-sm text-gray-500">All leave applications have been processed.</p>
+                  <FileText className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No pending leaves</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">All leave applications have been processed.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {pendingLeaves.map((leave) => (
-                    <div key={leave.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div key={leave.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 transition-colors duration-200">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3">
-                            <h4 className="text-lg font-medium text-gray-900">{leave.user.name}</h4>
-                            <span className="text-sm text-gray-500">{leave.user.email}</span>
+                            <h4 className="text-lg font-medium text-gray-900 dark:text-white">{leave.user.name}</h4>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">{leave.user.email}</span>
                           </div>
                           <div className="mt-2">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
                               <span className="font-medium">Period:</span> {format(new Date(leave.start_date), 'MMM dd, yyyy')} - {format(new Date(leave.end_date), 'MMM dd, yyyy')}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                               <span className="font-medium">Reason:</span> {leave.reason}
                             </p>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                               Applied on {format(new Date(leave.created_at), 'MMM dd, yyyy')}
                             </p>
                           </div>
@@ -311,14 +318,14 @@ export const AdminDashboard: React.FC = () => {
                         <div className="flex space-x-2 ml-4">
                           <button
                             onClick={() => handleLeaveAction(leave.id, 'approved')}
-                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
                             Approve
                           </button>
                           <button
                             onClick={() => handleLeaveAction(leave.id, 'rejected')}
-                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
                           >
                             <XCircle className="h-4 w-4 mr-1" />
                             Reject
@@ -335,47 +342,49 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'users' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">User Management</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">User Management</h3>
                 <button 
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add User
                 </button>
               </div>
 
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
+              <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors duration-200">
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                   {recentUsers.map((user) => (
                     <li key={user.id}>
                       <div className="px-4 py-4 flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-700">
+                            <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 {user.name.charAt(0).toUpperCase()}
                               </span>
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                             {user.designation && (
-                              <div className="text-sm text-gray-500 font-medium">{user.designation}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">{user.designation}</div>
                             )}
-                            <div className="text-sm text-gray-500 capitalize">{user.role}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">{user.role}</div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            user.is_active 
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                              : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                           }`}>
                             {user.is_active ? 'Active' : 'Inactive'}
                           </span>
                           <button
                             onClick={() => handleUserStatusToggle(user.id)}
-                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200"
                           >
                             {user.is_active ? 'Deactivate' : 'Activate'}
                           </button>
@@ -391,39 +400,39 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'holidays' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Holiday Management</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Holiday Management</h3>
                 <button 
                   onClick={() => setIsHolidayModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Holiday
                 </button>
               </div>
 
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
+              <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors duration-200">
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                   {upcomingHolidays.map((holiday) => (
                     <li key={holiday.id}>
                       <div className="px-4 py-4 flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <Calendar className="h-6 w-6 text-blue-600" />
+                            <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{holiday.title}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{holiday.title}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {format(new Date(holiday.date), 'MMMM dd, yyyy')}
                             </div>
                             {holiday.description && (
-                              <div className="text-sm text-gray-500">{holiday.description}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">{holiday.description}</div>
                             )}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleDeleteHoliday(holiday.id)}
-                            className="text-red-600 hover:text-red-900 text-sm font-medium"
+                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 text-sm font-medium transition-colors duration-200"
                             title="Delete Holiday"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -433,6 +442,120 @@ export const AdminDashboard: React.FC = () => {
                     </li>
                   ))}
                 </ul>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'email' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Email Management</h3>
+                <div className="flex space-x-3">
+                  <button 
+                    onClick={() => setIsEmailSettingsModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Email Settings
+                  </button>
+                  <button 
+                    onClick={() => setIsEmailSendModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Email
+                  </button>
+                  <button 
+                    onClick={() => setIsEmailLogsModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+                  >
+                    <History className="h-4 w-4 mr-2" />
+                    Email Logs
+                  </button>
+                </div>
+              </div>
+
+              {/* Email Management Overview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
+                  <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Email Settings</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">SMTP Configuration</span>
+                      <button
+                        onClick={() => setIsEmailSettingsModalOpen(true)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200"
+                      >
+                        Configure
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Test Connection</span>
+                      <button
+                        onClick={() => setIsEmailSettingsModalOpen(true)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200"
+                      >
+                        Test
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
+                  <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h4>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => setIsEmailSendModalOpen(true)}
+                      className="w-full text-left p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Send className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">Send Email</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Send emails to employees</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => setIsEmailLogsModalOpen(true)}
+                      className="w-full text-left p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <History className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">View Email Logs</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Check email sending history</div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Features Info */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 transition-colors duration-200">
+                <h4 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-3">Email Management Features</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-200">
+                  <div>
+                    <h5 className="font-medium mb-2">Email Settings</h5>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Configure SMTP server settings</li>
+                      <li>• Test email connection</li>
+                      <li>• Manage sender information</li>
+                      <li>• Enable/disable email sending</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-medium mb-2">Email Sending</h5>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Send emails to individual users</li>
+                      <li>• Send bulk emails to multiple users</li>
+                      <li>• Use HTML formatting</li>
+                      <li>• Track email templates</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -462,6 +585,30 @@ export const AdminDashboard: React.FC = () => {
         isOpen={isHolidayModalOpen}
         onClose={() => setIsHolidayModalOpen(false)}
         onHolidayCreated={handleHolidayCreated}
+      />
+
+      {/* Email Settings Modal */}
+      <EmailSettingsModal
+        isOpen={isEmailSettingsModalOpen}
+        onClose={() => setIsEmailSettingsModalOpen(false)}
+        onSettingsUpdated={() => {
+          // Could refresh email settings status here if needed
+        }}
+      />
+
+      {/* Email Send Modal */}
+      <EmailSendModal
+        isOpen={isEmailSendModalOpen}
+        onClose={() => setIsEmailSendModalOpen(false)}
+        onEmailSent={() => {
+          // Could refresh email logs or show success message
+        }}
+      />
+
+      {/* Email Logs Modal */}
+      <EmailLogsModal
+        isOpen={isEmailLogsModalOpen}
+        onClose={() => setIsEmailLogsModalOpen(false)}
       />
     </div>
   );

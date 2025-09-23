@@ -83,11 +83,11 @@ export const LeaveManagement: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
     }
   };
 
@@ -121,24 +121,24 @@ export const LeaveManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 rounded-lg p-6 text-white transition-colors duration-200">
         <h2 className="text-2xl font-bold">Leave Management</h2>
-        <p className="text-blue-100">Review and manage employee leave applications</p>
+        <p className="text-blue-100 dark:text-blue-200">Review and manage employee leave applications</p>
       </div>
 
       {/* Controls */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-4 flex-1">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Search leaves..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
 
@@ -146,7 +146,7 @@ export const LeaveManagement: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -158,7 +158,7 @@ export const LeaveManagement: React.FC = () => {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="all">All Dates</option>
               <option value="today">Today</option>
@@ -171,58 +171,58 @@ export const LeaveManagement: React.FC = () => {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Total Leaves</div>
-          <div className="text-2xl font-bold text-gray-900">{leaves.length}</div>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Leaves</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{leaves.length}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Pending</div>
-          <div className="text-2xl font-bold text-yellow-600">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending</div>
+          <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
             {leaves.filter(l => l.status === 'pending').length}
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Approved</div>
-          <div className="text-2xl font-bold text-green-600">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Approved</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
             {leaves.filter(l => l.status === 'approved').length}
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Rejected</div>
-          <div className="text-2xl font-bold text-red-600">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Rejected</div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">
             {leaves.filter(l => l.status === 'rejected').length}
           </div>
         </div>
       </div>
 
       {/* Leaves List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors duration-200">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
             Leave Applications ({filteredLeaves.length})
           </h3>
         </div>
         
         {filteredLeaves.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No leave applications found</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <FileText className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No leave applications found</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {searchTerm || statusFilter !== 'all' || dateFilter !== 'all'
                 ? 'Try adjusting your search or filter criteria.'
                 : 'No leave applications have been submitted yet.'}
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredLeaves.map((leave) => (
               <li key={leave.id}>
                 <div className="px-4 py-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <h4 className="text-lg font-medium text-gray-900">{leave.user.name}</h4>
-                        <span className="text-sm text-gray-500">{leave.user.email}</span>
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-white">{leave.user.name}</h4>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">{leave.user.email}</span>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(leave.status)}`}>
                           {getStatusIcon(leave.status)}
                           <span className="ml-1 capitalize">{leave.status}</span>
@@ -231,23 +231,23 @@ export const LeaveManagement: React.FC = () => {
                       
                       <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Leave Period</p>
-                          <p className="text-sm text-gray-900">
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Leave Period</p>
+                          <p className="text-sm text-gray-900 dark:text-white">
                             {format(new Date(leave.start_date), 'MMM dd, yyyy')} - {format(new Date(leave.end_date), 'MMM dd, yyyy')}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
                             {calculateLeaveDays(leave.start_date, leave.end_date)} day(s)
                           </p>
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Reason</p>
-                          <p className="text-sm text-gray-900">{leave.reason}</p>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Reason</p>
+                          <p className="text-sm text-gray-900 dark:text-white">{leave.reason}</p>
                         </div>
                         
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Applied On</p>
-                          <p className="text-sm text-gray-900">
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Applied On</p>
+                          <p className="text-sm text-gray-900 dark:text-white">
                             {format(new Date(leave.created_at), 'MMM dd, yyyy')}
                           </p>
                         </div>

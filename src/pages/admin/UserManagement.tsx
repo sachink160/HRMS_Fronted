@@ -164,24 +164,24 @@ export const UserManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 rounded-lg p-6 text-white">
         <h2 className="text-2xl font-bold">Employee Management</h2>
-        <p className="text-blue-100">Manage employees, designations, and roles</p>
+        <p className="text-blue-100 dark:text-primary-200/80">Manage employees, designations, and roles</p>
       </div>
 
       {/* Controls */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-4 flex-1">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
             <input
               type="text"
               placeholder="Search employees..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+              className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white"
             />
             </div>
 
@@ -189,7 +189,7 @@ export const UserManagement: React.FC = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="all">All Roles</option>
               <option value="user">Users</option>
@@ -201,7 +201,7 @@ export const UserManagement: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -212,7 +212,7 @@ export const UserManagement: React.FC = () => {
           {/* Add Employee Button */}
           <button 
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Employee
@@ -221,9 +221,9 @@ export const UserManagement: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors duration-200">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
             Employees ({filteredUsers.length})
           </h3>
         </div>
@@ -231,8 +231,8 @@ export const UserManagement: React.FC = () => {
         {filteredUsers.length === 0 ? (
           <div className="text-center py-12">
             <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No employees found</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No employees found</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {searchTerm || roleFilter !== 'all' || statusFilter !== 'all'
                 ? 'Try adjusting your search or filter criteria.'
                 : 'Get started by adding a new employee.'}
@@ -240,23 +240,23 @@ export const UserManagement: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WiFi ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Docs</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">WiFi ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Designation</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Docs</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     {/* Name */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -264,62 +264,62 @@ export const UserManagement: React.FC = () => {
                           {user.profile_image ? (
                             <img src={getFileUrl(user.profile_image) || ''} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
                           ) : (
-                            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-700">{user.name.charAt(0).toUpperCase()}</span>
+                            <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name.charAt(0).toUpperCase()}</span>
                             </div>
                           )}
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
                         </div>
                       </div>
                     </td>
 
                     {/* Contact */}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                       <div>
-                        <a href={`mailto:${user.email}`} className="text-blue-600 hover:underline">{user.email}</a>
+                        <a href={`mailto:${user.email}`} className="text-primary-600 dark:text-primary-400 hover:underline">{user.email}</a>
                       </div>
-                      {user.phone && <div className="text-gray-500">{user.phone}</div>}
+                      {user.phone && <div className="text-gray-500 dark:text-gray-400">{user.phone}</div>}
                     </td>
 
                     {/* WiFi ID */}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{user.wifi_user_id || '-'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{user.wifi_user_id || '-'}</td>
 
                     {/* Role */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>{getRoleDisplayName(user.role)}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)} dark:opacity-90`}>{getRoleDisplayName(user.role)}</span>
                     </td>
 
                     {/* Designation */}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{user.designation || '-'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{user.designation || '-'}</td>
 
                     {/* Joined */}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                       {user.joining_date ? format(new Date(user.joining_date), 'MMM dd, yyyy') : format(new Date(user.created_at), 'MMM dd, yyyy')}
                     </td>
 
                     {/* Status */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{user.is_active ? 'Active' : 'Inactive'}</span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20' : 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20'}`}>{user.is_active ? 'Active' : 'Inactive'}</span>
                     </td>
 
                     {/* Docs */}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">{getDocumentsCount(user)} of 3</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{getDocumentsCount(user)} of 3</span>
                         {user.aadhaar_front && (
-                          <a href={getFileUrl(user.aadhaar_front) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800" title="Aadhaar Front">
+                          <a href={getFileUrl(user.aadhaar_front) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700" title="Aadhaar Front">
                             {getFileIcon(user.aadhaar_front)}
                           </a>
                         )}
                         {user.aadhaar_back && (
-                          <a href={getFileUrl(user.aadhaar_back) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800" title="Aadhaar Back">
+                          <a href={getFileUrl(user.aadhaar_back) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700" title="Aadhaar Back">
                             {getFileIcon(user.aadhaar_back)}
                           </a>
                         )}
                         {user.pan_image && (
-                          <a href={getFileUrl(user.pan_image) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800" title="PAN">
+                          <a href={getFileUrl(user.pan_image) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700" title="PAN">
                             {getFileIcon(user.pan_image)}
                           </a>
                         )}
@@ -329,22 +329,22 @@ export const UserManagement: React.FC = () => {
                     {/* Actions */}
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
                       <div className="flex items-center justify-end space-x-1">
-                        <button onClick={() => handleViewUser(user)} className="p-2 text-gray-600 hover:bg-gray-50 rounded-md" title="View">
+                        <button onClick={() => handleViewUser(user)} className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md" title="View">
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleToggleStatus(user.id)}
-                          className={`p-2 rounded-md ${user.is_active ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
+                          className={`p-2 rounded-md ${user.is_active ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20' : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'}`}
                           title={user.is_active ? 'Deactivate User' : 'Activate User'}
                         >
                           {user.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </button>
-                        <button onClick={() => handleEditUser(user)} className="p-2 text-gray-600 hover:bg-gray-50 rounded-md" title="Edit User">
+                        <button onClick={() => handleEditUser(user)} className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md" title="Edit User">
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id, user.name, user.role)}
-                          className={`p-2 rounded-md ${user.role === 'super_admin' ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:bg-red-50'}`}
+                          className={`p-2 rounded-md ${user.role === 'super_admin' ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
                           title={user.role === 'super_admin' ? 'Cannot delete super admin' : 'Delete User'}
                           disabled={user.role === 'super_admin'}
                         >
@@ -362,25 +362,25 @@ export const UserManagement: React.FC = () => {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Total Employees</div>
-          <div className="text-2xl font-bold text-gray-900">{users.length}</div>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Employees</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{users.length}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Active Employees</div>
-          <div className="text-2xl font-bold text-green-600">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Employees</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
             {users.filter(u => u.is_active).length}
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Admins</div>
-          <div className="text-2xl font-bold text-blue-600">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Admins</div>
+          <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
             {users.filter(u => u.role === 'admin' || u.role === 'super_admin').length}
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm font-medium text-gray-500">Regular Employees</div>
-          <div className="text-2xl font-bold text-gray-600">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Regular Employees</div>
+          <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">
             {users.filter(u => u.role === 'user').length}
           </div>
         </div>

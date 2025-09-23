@@ -272,59 +272,59 @@ export const TimeTracker: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Time Tracker</h2>
-          <p className="text-gray-600">Track your daily attendance and working hours</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Time Tracker</h2>
+          <p className="text-gray-600 dark:text-gray-400">Track your daily attendance and working hours</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition-colors duration-200"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           <div className="flex items-center space-x-2">
             <div className={`w-3 h-3 rounded-full ${notificationsEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {notificationsEnabled ? 'Notifications On' : 'Notifications Off'}
             </span>
           </div>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             Last updated: {format(lastRefresh, 'HH:mm:ss')}
           </div>
         </div>
       </div>
 
       {/* Today's Status */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
-          <Clock className="h-5 w-5 mr-2 text-blue-600" />
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6 flex items-center">
+          <Clock className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
           Today's Status - {format(new Date(), 'MMMM dd, yyyy')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div className="text-center">
-            <div className="text-sm font-medium text-gray-600 mb-2">Check-in Time</div>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Check-in Time</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatTime(todayStatus?.check_in_time)}
             </div>
           </div>
 
           <div className="text-center">
-            <div className="text-sm font-medium text-gray-600 mb-2">Check-out Time</div>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Check-out Time</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatTime(todayStatus?.check_out_time)}
             </div>
           </div>
 
           <div className="text-center">
-            <div className="text-sm font-medium text-gray-600 mb-2">Work Time</div>
-            <div className={`text-2xl font-bold ${isTimerRunning && !isOnBreak ? 'text-green-600 animate-pulse' : 'text-gray-900'}`}>
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Work Time</div>
+            <div className={`text-2xl font-bold ${isTimerRunning && !isOnBreak ? 'text-green-600 dark:text-green-400 animate-pulse' : 'text-gray-900 dark:text-white'}`}>
               {isTimerRunning && !isOnBreak ? elapsedTime : '00:00:00'}
             </div>
             {isTimerRunning && !isOnBreak && (
-              <div className="text-xs text-green-600 mt-1 flex items-center justify-center">
+              <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></div>
                 Working
               </div>
@@ -332,15 +332,15 @@ export const TimeTracker: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <div className="text-sm font-medium text-gray-600 mb-2 flex items-center justify-center">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center justify-center">
               <Coffee className="h-4 w-4 mr-1" />
               {isOnBreak ? 'Break Time' : 'Total Breaks'}
             </div>
-            <div className={`text-2xl font-bold ${isOnBreak ? 'text-yellow-600 animate-pulse' : 'text-gray-900'}`}>
+            <div className={`text-2xl font-bold ${isOnBreak ? 'text-yellow-600 dark:text-yellow-400 animate-pulse' : 'text-gray-900 dark:text-white'}`}>
               {isOnBreak ? breakElapsedTime : formatDuration(totalBreakTime / 3600)}
             </div>
             {isOnBreak && (
-              <div className="text-xs text-yellow-600 mt-1 flex items-center justify-center">
+              <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 flex items-center justify-center">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-1"></div>
                 On Break
               </div>
@@ -348,8 +348,8 @@ export const TimeTracker: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <div className="text-sm font-medium text-gray-600 mb-2">Total Hours</div>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Hours</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {todayStatus?.total_hours 
                 ? formatDuration(todayStatus.total_hours)
                 : '--h --m'
@@ -363,7 +363,7 @@ export const TimeTracker: React.FC = () => {
             <button
               onClick={handleCheckIn}
               disabled={isCheckingIn}
-              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg shadow-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
+              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg shadow-lg text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
             >
               {isCheckingIn ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
@@ -375,15 +375,15 @@ export const TimeTracker: React.FC = () => {
           ) : !todayStatus?.check_out_time ? (
             <div className="flex flex-col items-center space-y-4">
               <div className="text-center">
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                   {isOnBreak ? 'Currently on Break' : 'Currently Working'}
                 </div>
-                <div className={`text-lg font-semibold flex items-center ${isOnBreak ? 'text-yellow-600' : 'text-green-600'}`}>
+                <div className={`text-lg font-semibold flex items-center ${isOnBreak ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
                   <div className={`w-3 h-3 rounded-full animate-pulse mr-2 ${isOnBreak ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
                   {isOnBreak ? 'On Break - Work Timer Paused' : 'Active Session - Work Timer Running'}
                 </div>
                 {totalBreakTime > 0 && (
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Total break time today: {formatDuration(totalBreakTime / 3600)}
                   </div>
                 )}
@@ -392,7 +392,7 @@ export const TimeTracker: React.FC = () => {
                 {!isOnBreak ? (
                   <button
                     onClick={handleStartBreak}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transform hover:scale-105 transition-all duration-200"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-500 dark:hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 dark:focus:ring-offset-gray-800 transform hover:scale-105 transition-all duration-200"
                   >
                     <Coffee className="h-5 w-5 mr-2" />
                     Start Break
@@ -400,7 +400,7 @@ export const TimeTracker: React.FC = () => {
                 ) : (
                   <button
                     onClick={handleEndBreak}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:scale-105 transition-all duration-200"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transform hover:scale-105 transition-all duration-200"
                   >
                     <Pause className="h-5 w-5 mr-2" />
                     End Break
@@ -409,7 +409,7 @@ export const TimeTracker: React.FC = () => {
                 <button
                   onClick={handleCheckOut}
                   disabled={isCheckingOut}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
                 >
                   {isCheckingOut ? (
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -422,11 +422,11 @@ export const TimeTracker: React.FC = () => {
             </div>
           ) : (
             <div className="text-center">
-              <div className="text-green-600 font-semibold text-lg mb-2 flex items-center justify-center">
+              <div className="text-green-600 dark:text-green-400 font-semibold text-lg mb-2 flex items-center justify-center">
                 <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
                 Day Completed
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 Great work! You've completed your working day.
               </div>
             </div>
@@ -435,54 +435,54 @@ export const TimeTracker: React.FC = () => {
       </div>
 
       {/* Attendance History */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors duration-200">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+            <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
             Attendance History
           </h3>
         </div>
         <div className="overflow-x-auto">
           {attendance.length === 0 ? (
             <div className="text-center py-12">
-              <Clock className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No attendance records</h3>
-              <p className="mt-1 text-sm text-gray-500">Your attendance history will appear here.</p>
+              <Clock className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No attendance records</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Your attendance history will appear here.</p>
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Check In
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Check Out
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Total Hours
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {attendance.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {formatDate(record.date)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatTime(record.check_in_time)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatTime(record.check_out_time)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {record.total_hours 
                         ? formatDuration(record.total_hours)
                         : '--h --m'
@@ -491,8 +491,8 @@ export const TimeTracker: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         record.check_out_time 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                          : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                       }`}>
                         {record.check_out_time ? 'Complete' : 'Incomplete'}
                       </span>
