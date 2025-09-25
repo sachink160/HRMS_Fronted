@@ -305,7 +305,7 @@ export const Settings: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Email</label>
             <input 
               type="email"
-              value={settings.email.fromEmail} 
+              value={settings.email.fromEmail}
               onChange={(e) => setSettings(prev => ({
                 ...prev,
                 email: { ...prev.email, fromEmail: e.target.value }

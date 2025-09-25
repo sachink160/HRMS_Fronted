@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService, leaveService, userService, holidayService } from '../../api/services';
-import { Users, FileText, Calendar, TrendingUp, CheckCircle, XCircle, Plus, Trash2, Mail, Settings, Send, History } from 'lucide-react';
+import { Users, FileText, Calendar, TrendingUp, CheckCircle, XCircle, Plus, Trash2, Mail, Settings, Send, History, Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { UserCreationModal } from '../../components/UserCreationModal';
@@ -9,6 +9,7 @@ import { HolidayCreationModal } from '../../components/HolidayCreationModal';
 import { EmailSettingsModal } from '../../components/EmailSettingsModal';
 import { EmailSendModal } from '../../components/EmailSendModal';
 import { EmailLogsModal } from '../../components/EmailLogsModal';
+import { parseExcelFile, exportHolidaysToExcel, downloadExcelTemplate, HolidayExcelRow } from '../../utils/excelUtils';
 
 interface DashboardStats {
   total_users: number;
@@ -135,6 +136,74 @@ export const AdminDashboard: React.FC = () => {
 
   const handleHolidayCreated = () => {
     fetchDashboardData();
+  };
+
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    console.log('Excel file selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+    try {
+      toast.loading('Parsing Excel file...', { id: 'excel-upload' });
+      
+      const holidays = await parseExcelFile(file);
+      console.log('Parsed holidays from Excel:', holidays);
+      
+      if (holidays.length === 0) {
+        toast.error('No valid holidays found in Excel file. Please check the format.', { id: 'excel-upload' });
+        return;
+      }
+
+      toast.loading(`Uploading ${holidays.length} holidays...`, { id: 'excel-upload' });
+
+      // Convert to the format expected by the API
+      const payload = holidays.map(holiday => ({
+        title: holiday.title,
+        date: holiday.date,
+        description: holiday.description,
+        is_active: holiday.is_active !== false, // Default to true if not specified
+      }));
+
+      console.log('Payload to send to API:', payload);
+
+      await holidayService.bulkUploadHolidays(payload);
+      toast.success(`${holidays.length} holidays uploaded successfully!`, { id: 'excel-upload' });
+      
+      // Reset file input
+      e.target.value = '';
+      
+      // Refresh the dashboard data
+      await fetchDashboardData();
+    } catch (error) {
+      console.error('Excel upload error:', error);
+      toast.error(`Failed to upload Excel file: ${error.message}`, { id: 'excel-upload' });
+    }
+  };
+
+  const handleExportToExcel = () => {
+    try {
+      const excelData: HolidayExcelRow[] = upcomingHolidays.map(holiday => ({
+        title: holiday.title,
+        date: holiday.date,
+        description: holiday.description,
+        is_active: true,
+      }));
+      
+      exportHolidaysToExcel(excelData, `holidays_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      toast.success('Holidays exported to Excel successfully');
+    } catch (error) {
+      toast.error('Failed to export holidays to Excel');
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    try {
+      downloadExcelTemplate();
+      toast.success('Template downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download template');
+    }
   };
 
   if (isLoading) {
@@ -399,15 +468,48 @@ export const AdminDashboard: React.FC = () => {
 
           {activeTab === 'holidays' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Holiday Management</h3>
-                <button 
-                  onClick={() => setIsHolidayModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Holiday
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  {/* Download Template */}
+                  <button
+                    onClick={handleDownloadTemplate}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Template
+                  </button>
+
+                  {/* Excel Upload */}
+                  <label className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors duration-200">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Excel
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={handleExcelUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Export Excel */}
+                  <button
+                    onClick={handleExportToExcel}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Excel
+                  </button>
+
+                  {/* Add Holiday Button */}
+                  <button 
+                    onClick={() => setIsHolidayModalOpen(true)}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Holiday
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors duration-200">

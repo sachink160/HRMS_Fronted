@@ -103,7 +103,7 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Email Logs</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">View email sending history and status</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">View email sending history and status</p>
             </div>
           </div>
           <button
@@ -142,7 +142,7 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
               </button>
             </div>
             
-            <div className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Total: {totalLogs} logs
             </div>
           </div>
@@ -156,42 +156,42 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
             <div className="text-center py-12">
               <Mail className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No email logs</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">No emails have been sent yet.</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">No emails have been sent yet.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Recipient
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Subject
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Template
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Sent At
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Created At
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50">
+                    <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {log.recipient_name || 'N/A'}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{log.recipient_email}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{log.recipient_email}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -200,7 +200,7 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           {log.template_type || 'N/A'}
                         </span>
                       </td>
@@ -217,10 +217,10 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {log.sent_at ? format(new Date(log.sent_at), 'MMM dd, yyyy HH:mm') : 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {format(new Date(log.created_at), 'MMM dd, yyyy HH:mm')}
                       </td>
                     </tr>
@@ -240,7 +240,7 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 0}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                 >
                   Previous
                 </button>
@@ -248,10 +248,10 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
                   <button
                     key={i}
                     onClick={() => handlePageChange(i)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
                       currentPage === i
-                        ? 'text-white bg-blue-600'
-                        : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50'
+                        ? 'text-white bg-blue-600 dark:bg-blue-700'
+                        : 'text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     {i + 1}
@@ -260,7 +260,7 @@ export const EmailLogsModal: React.FC<EmailLogsModalProps> = ({
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages - 1}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                 >
                   Next
                 </button>

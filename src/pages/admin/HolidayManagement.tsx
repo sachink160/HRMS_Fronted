@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { holidayService } from '../../api/services';
-import { Calendar, Plus, Edit, Trash2, Search, Upload } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, Search, Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { HolidayEditModal } from '../../components/HolidayEditModal';
+import { parseExcelFile, exportHolidaysToExcel, downloadExcelTemplate, HolidayExcelRow } from '../../utils/excelUtils';
+import { debugExcelFile } from '../../utils/testExcelGenerator';
 
 interface Holiday {
   id: number;
@@ -121,6 +123,102 @@ export const HolidayManagement: React.FC = () => {
     }
   };
 
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    console.log('Excel file selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+    // Debug the Excel file first
+    debugExcelFile(file);
+
+    try {
+      toast.loading('Parsing Excel file...', { id: 'excel-upload' });
+      
+      const holidays = await parseExcelFile(file);
+      console.log('Parsed holidays from Excel:', holidays);
+      
+      if (holidays.length === 0) {
+        toast.error('No valid holidays found in Excel file. Please check the format and console for debug info.', { id: 'excel-upload' });
+        return;
+      }
+
+      toast.loading(`Uploading ${holidays.length} holidays...`, { id: 'excel-upload' });
+
+      // Convert to the format expected by the API
+      const payload = holidays.map(holiday => ({
+        title: holiday.title,
+        date: holiday.date,
+        description: holiday.description,
+        is_active: holiday.is_active !== false, // Default to true if not specified
+      }));
+
+      console.log('Payload to send to API:', payload);
+
+      await holidayService.bulkUploadHolidays(payload);
+      toast.success(`${holidays.length} holidays uploaded successfully!`, { id: 'excel-upload' });
+      
+      // Reset file input
+      e.target.value = '';
+      
+      // Refresh the holidays list
+      await fetchHolidays();
+    } catch (error) {
+      console.error('Excel upload error:', error);
+      toast.error(`Failed to upload Excel file: ${error.message}`, { id: 'excel-upload' });
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const response = await holidayService.exportHolidaysExcel();
+      
+      // Create blob from response
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `holidays_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Holidays exported successfully');
+    } catch (error) {
+      toast.error('Failed to export holidays');
+    }
+  };
+
+  const handleExportToExcel = () => {
+    try {
+      const excelData: HolidayExcelRow[] = holidays.map(holiday => ({
+        title: holiday.title,
+        date: holiday.date,
+        description: holiday.description,
+        is_active: holiday.is_active,
+      }));
+      
+      exportHolidaysToExcel(excelData, `holidays_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      toast.success('Holidays exported to Excel successfully');
+    } catch (error) {
+      toast.error('Failed to export holidays to Excel');
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    try {
+      downloadExcelTemplate();
+      toast.success('Template downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download template');
+    }
+  };
+
   const filteredHolidays = holidays.filter(holiday =>
     holiday.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (holiday.description && holiday.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -167,18 +265,48 @@ export const HolidayManagement: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex space-x-2">
-            {/* Bulk Upload */}
-            <label className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors duration-200">
+          <div className="flex flex-wrap gap-2">
+            {/* Download Template */}
+            <button
+              onClick={handleDownloadTemplate}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Template
+            </button>
+
+            {/* Excel Upload */}
+            <label className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors duration-200">
               <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
+              Upload Excel
               <input
                 type="file"
-                accept=".csv,.xlsx"
+                accept=".xlsx,.xls"
+                onChange={handleExcelUpload}
+                className="hidden"
+              />
+            </label>
+
+            {/* CSV Upload */}
+            <label className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors duration-200">
+              <Upload className="h-4 w-4 mr-2" />
+              Upload CSV
+              <input
+                type="file"
+                accept=".csv"
                 onChange={handleBulkUpload}
                 className="hidden"
               />
             </label>
+
+            {/* Export Excel */}
+            <button
+              onClick={handleExportToExcel}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </button>
 
             {/* Add Holiday Button */}
             <button

@@ -260,6 +260,18 @@ export const holidayService = {
   // Bulk operations
   bulkUploadHolidays: (holidays: Array<{ title: string; date: string; description?: string }>) =>
     api.post('/admin/holidays/bulk', holidays),
+  
+  // Excel operations
+  bulkUploadExcel: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/admin/holidays/bulk-excel', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  
+  exportHolidaysExcel: () =>
+    api.get('/admin/holidays/export-excel', { responseType: 'blob' }),
 };
 
 // Tracking Services
